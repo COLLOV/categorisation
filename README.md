@@ -17,6 +17,7 @@ Modifiez `config/pipeline.example.yaml` selon votre source de données:
 - `io.path`: chemin du CSV (ou JSONL si `io.type: jsonl`)
 - `io.text_field`: colonne contenant le texte du feedback
 - `io.output_path`: chemin du CSV de sortie
+- `limit`: limite optionnelle du nombre de lignes à traiter (utile pour tester rapidement)
 
 LLM via variables d'environnement (exemple dans `.env.exemple`):
 - `LLM_MODE=api|local`
@@ -29,6 +30,9 @@ LLM via variables d'environnement (exemple dans `.env.exemple`):
 uv run ano2 run -c config/pipeline.example.yaml
 ```
 Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` et sauvegarde le CSV si `output_path` est défini. Une barre de progression (tqdm) s'affiche durant la classification et la consolidation des sous‑catégories.
+
+Astuce test rapide:
+- Dans le YAML, mettez `limit: 5` pour traiter uniquement 5 lignes.
 
 ## API (FastAPI)
 Lancement rapide:

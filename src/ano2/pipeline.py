@@ -69,7 +69,11 @@ class Pipeline:
 
     def run(self) -> pd.DataFrame:
         df = self._load()
-        logger.info("Loaded %d rows", len(df))
+        if self.cfg.limit is not None and self.cfg.limit > 0:
+            df = df.head(self.cfg.limit)
+            logger.info("Loaded %d rows (limited to %d)", len(df), self.cfg.limit)
+        else:
+            logger.info("Loaded %d rows", len(df))
         llm = LLMClient.from_env()
         emb = Embeddings.from_config(
             provider=self.cfg.embedding.provider,
