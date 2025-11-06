@@ -31,7 +31,13 @@ uv run ano2 run -c config/pipeline.example.yaml
 Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` et sauvegarde le CSV si `output_path` est défini.
 
 ## API (FastAPI)
-Exemple d’app (dans votre code):
+Lancement rapide:
+```bash
+export PIPELINE_CONFIG=config/pipeline.example.yaml
+uv run uvicorn ano2.server:app --reload --host 0.0.0.0 --port 8080
+```
+
+Exemple d’app (intégration dans votre code):
 ```python
 from ano2.config import PipelineConfig
 from ano2.api import create_app
