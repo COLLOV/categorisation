@@ -1,0 +1,29 @@
+io:
+  type: csv
+  path: data/tickets_jira.csv  # change to your input CSV
+  text_field: description      # column containing the feedback text
+  id_field: null
+  output_path: data/output/categorized.csv
+
+llm:
+  mode: null           # uses env LLM_MODE (api|local)
+  model: null          # uses env LLM_MODEL
+  base_url: null       # uses env OPENAI_BASE_URL
+  api_key_env: OPENAI_API_KEY
+
+embedding:
+  provider: openai
+  local_model: paraphrase-multilingual-MiniLM-L12-v2
+  openai_model: text-embedding-3-small
+
+clustering:
+  category_threshold: 0.2
+  subcategory_threshold: 0.2
+
+batch_size: 1
+limit: 5  # set to an integer (e.g., 10) to process only first N rows
+
+field_names:
+  category: Category
+  subcategory: Sub Category
+  sentiment: Sentiment
