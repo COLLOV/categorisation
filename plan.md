@@ -16,6 +16,8 @@ Objectif: Construire une pipeline schema-agnostic qui catégorise des feedbacks 
 11) Ajout horodatage output (colonne + suffixe de fichier) piloté par YAML
 12) Récapitulatif des comptes par catégorie et sous-catégorie dans les logs de fin
 13) Persister le récapitulatif en JSON optionnellement (piloté par YAML)
+14) Optimiser le clustering via déduplication des libellés (cat/sub)
+15) Ajouter la parallélisation contrôlée des appels LLM (`workers`)
 
 Contraintes:
 - Pas de fallback implicite; erreurs explicites et configurables

@@ -1,0 +1,285 @@
+{
+  "generated_at": "2025-11-06T22:41:19Z",
+  "total_rows": 100,
+  "category_counts": [
+    {
+      "category": "Technical Issue",
+      "count": 24
+    },
+    {
+      "category": "Access Issue",
+      "count": 12
+    },
+    {
+      "category": "Performance",
+      "count": 10
+    },
+    {
+      "category": "Functionality",
+      "count": 10
+    },
+    {
+      "category": "Product Issue",
+      "count": 8
+    },
+    {
+      "category": "IT Support",
+      "count": 8
+    },
+    {
+      "category": "Bug Report",
+      "count": 5
+    },
+    {
+      "category": "Hardware",
+      "count": 4
+    },
+    {
+      "category": "Access",
+      "count": 3
+    },
+    {
+      "category": "Software Issue",
+      "count": 3
+    },
+    {
+      "category": "Produit",
+      "count": 2
+    },
+    {
+      "category": "App Functionality",
+      "count": 2
+    },
+    {
+      "category": "Account Management",
+      "count": 2
+    },
+    {
+      "category": "Security",
+      "count": 2
+    },
+    {
+      "category": "Request",
+      "count": 2
+    },
+    {
+      "category": "Feature Request",
+      "count": 1
+    },
+    {
+      "category": "IT Request",
+      "count": 1
+    },
+    {
+      "category": "Usability",
+      "count": 1
+    }
+  ],
+  "subcategory_counts": [
+    {
+      "category": "Access",
+      "subcategory": "Admin Rights",
+      "count": 3
+    },
+    {
+      "category": "Access Issue",
+      "subcategory": "Permission Denied",
+      "count": 5
+    },
+    {
+      "category": "Access Issue",
+      "subcategory": "Intranet Unavailable",
+      "count": 3
+    },
+    {
+      "category": "Access Issue",
+      "subcategory": "Badge Failure",
+      "count": 2
+    },
+    {
+      "category": "Access Issue",
+      "subcategory": "Badge Malfunction",
+      "count": 1
+    },
+    {
+      "category": "Access Issue",
+      "subcategory": "Login Error",
+      "count": 1
+    },
+    {
+      "category": "Account Management",
+      "subcategory": "Deactivation Request",
+      "count": 2
+    },
+    {
+      "category": "App Functionality",
+      "subcategory": "Crash Issue",
+      "count": 2
+    },
+    {
+      "category": "Bug Report",
+      "subcategory": "Startup Error",
+      "count": 5
+    },
+    {
+      "category": "Feature Request",
+      "subcategory": "Software Installation",
+      "count": 1
+    },
+    {
+      "category": "Functionality",
+      "subcategory": "Missing Feature",
+      "count": 4
+    },
+    {
+      "category": "Functionality",
+      "subcategory": "Attachment Limit",
+      "count": 2
+    },
+    {
+      "category": "Functionality",
+      "subcategory": "File Corruption",
+      "count": 2
+    },
+    {
+      "category": "Functionality",
+      "subcategory": "File Access",
+      "count": 1
+    },
+    {
+      "category": "Functionality",
+      "subcategory": "Screen Sharing",
+      "count": 1
+    },
+    {
+      "category": "Hardware",
+      "subcategory": "Keyboard Issue",
+      "count": 3
+    },
+    {
+      "category": "Hardware",
+      "subcategory": "Bluetooth Mouse",
+      "count": 1
+    },
+    {
+      "category": "IT Request",
+      "subcategory": "Software License",
+      "count": 1
+    },
+    {
+      "category": "IT Support",
+      "subcategory": "Phone Transfer",
+      "count": 5
+    },
+    {
+      "category": "IT Support",
+      "subcategory": "Password Reset",
+      "count": 3
+    },
+    {
+      "category": "Performance",
+      "subcategory": "Slow Startup",
+      "count": 5
+    },
+    {
+      "category": "Performance",
+      "subcategory": "App Freezing",
+      "count": 3
+    },
+    {
+      "category": "Performance",
+      "subcategory": "Slow Loading",
+      "count": 2
+    },
+    {
+      "category": "Product Issue",
+      "subcategory": "Sync Problem",
+      "count": 5
+    },
+    {
+      "category": "Product Issue",
+      "subcategory": "Screen Flicker",
+      "count": 3
+    },
+    {
+      "category": "Produit",
+      "subcategory": "Problème écran",
+      "count": 2
+    },
+    {
+      "category": "Request",
+      "subcategory": "Software License",
+      "count": 2
+    },
+    {
+      "category": "Security",
+      "subcategory": "Account Compromise",
+      "count": 2
+    },
+    {
+      "category": "Software Issue",
+      "subcategory": "File Corruption",
+      "count": 2
+    },
+    {
+      "category": "Software Issue",
+      "subcategory": "Crash/Error",
+      "count": 1
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Audio Problem",
+      "count": 4
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Authentication Error",
+      "count": 3
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Connectivity Problem",
+      "count": 3
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Scanner Failure",
+      "count": 3
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Certificate Expired",
+      "count": 2
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Hardware Failure",
+      "count": 2
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Phone Not Working",
+      "count": 2
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Printer Error",
+      "count": 2
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Webcam Problem",
+      "count": 2
+    },
+    {
+      "category": "Technical Issue",
+      "subcategory": "Network Access",
+      "count": 1
+    },
+    {
+      "category": "Usability",
+      "subcategory": "Character Display",
+      "count": 1
+    }
+  ]
+}

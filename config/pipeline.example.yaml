@@ -28,6 +28,7 @@ clustering:
 
 batch_size: 1
 limit: 5  # set to an integer (e.g., 10) to process only first N rows
+workers: 1   # parallel LLM calls (>=1)
 
 field_names:
   category: Category

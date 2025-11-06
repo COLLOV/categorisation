@@ -18,6 +18,7 @@ Modifiez `config/pipeline.example.yaml` selon votre source de données:
 - `io.text_field`: colonne contenant le texte du feedback
 - `io.output_path`: chemin du CSV de sortie
 - `limit`: limite optionnelle du nombre de lignes à traiter (utile pour tester rapidement)
+  - `workers`: nombre de workers pour paralléliser les appels LLM (>=1)
   - Horodatage sortie (facultatif):
     - `io.add_timestamp_column`: ajoute une colonne UTC ISO-8601 (ex: `processed_at`)
     - `io.timestamp_column_name`: nom de la colonne d'horodatage

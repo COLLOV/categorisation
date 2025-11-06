@@ -12,6 +12,7 @@ import pandas as pd
 from sklearn.cluster import AgglomerativeClustering
 from datetime import datetime, timezone
 from tqdm.auto import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .config import PipelineConfig
 from .embed import Embeddings
@@ -65,6 +66,22 @@ def _canonical_labels(groups: Dict[int, List[str]]) -> Dict[int, str]:
     return canon
 
 
+def _canonical_labels_weighted(groups: Dict[int, List[str]], counts: Dict[str, int]) -> Dict[int, str]:
+    canon = {}
+    for gid, items in groups.items():
+        # Sum counts by normalized form
+        agg: Dict[str, int] = {}
+        for x in items:
+            nx = _normalize_label(x)
+            agg[nx] = agg.get(nx, 0) + int(counts.get(x, 1))
+        best_norm, _ = max(agg.items(), key=lambda kv: (kv[1], -len(kv[0])))
+        # pick the shortest original matching best_norm
+        candidates = [x for x in items if _normalize_label(x) == best_norm]
+        best = min(candidates, key=len)
+        canon[gid] = best
+    return canon
+
+
 @dataclass
 class Pipeline:
     cfg: PipelineConfig
@@ -84,38 +101,54 @@ class Pipeline:
         )
 
         logger.info("Classifying %d rows (first call may take a few seconds)", len(df))
-        results = []
-        for i, (_, row) in enumerate(tqdm(df.iterrows(), total=len(df), desc="Classifying", unit="row")):
-            text = str(row[self.cfg.io.text_field])
-            parsed = llm.categorize(text)
-            results.append(parsed)
+        texts = [str(df.iloc[i][self.cfg.io.text_field]) for i in range(len(df))]
+        results: List[Dict[str, str]] = [None] * len(texts)  # type: ignore
+        if self.cfg.workers <= 1:
+            for i, text in enumerate(tqdm(texts, total=len(texts), desc="Classifying", unit="row")):
+                results[i] = llm.categorize(text)
+        else:
+            with ThreadPoolExecutor(max_workers=self.cfg.workers) as ex, tqdm(total=len(texts), desc="Classifying", unit="row") as pbar:
+                futs = {ex.submit(llm.categorize, t): i for i, t in enumerate(texts)}
+                for fut in as_completed(futs):
+                    i = futs[fut]
+                    results[i] = fut.result()
+                    pbar.update(1)
 
         df_pred = pd.DataFrame(results)
         df_combined = pd.concat([df.reset_index(drop=True), df_pred], axis=1)
 
-        # Canonicalize categories
+        # Canonicalize categories (dedupe before clustering)
         cat_labels = list(df_combined["category"].astype(str))
-        cat_clusters = _cluster_labels(cat_labels, emb, self.cfg.clustering.category_threshold)
-        cat_groups: Dict[int, List[str]] = defaultdict(list)
-        for label, gid in zip(cat_labels, cat_clusters):
-            cat_groups[gid].append(label)
-        cat_canon = _canonical_labels(cat_groups)
-        df_combined["category_canon"] = [cat_canon[g] for g in cat_clusters]
+        cat_counts = Counter(cat_labels)
+        cat_uniques = list(cat_counts.keys())
+        cat_u_clusters = _cluster_labels(cat_uniques, emb, self.cfg.clustering.category_threshold)
+        cat_u_groups: Dict[int, List[str]] = defaultdict(list)
+        for label, gid in zip(cat_uniques, cat_u_clusters):
+            cat_u_groups[gid].append(label)
+        cat_u_canon = _canonical_labels_weighted(cat_u_groups, cat_counts)
+        # map each unique to canonical
+        cat_map = {label: cat_u_canon[gid] for label, gid in zip(cat_uniques, cat_u_clusters)}
+        df_combined["category_canon"] = [cat_map[l] for l in cat_labels]
 
         # Canonicalize subcategories within each canonical category
         subcanon_out = []
         for canon_cat in tqdm(df_combined["category_canon"].unique(), desc="Subcategory clustering", unit="cat"):
             mask = df_combined["category_canon"] == canon_cat
             sub_labels = list(df_combined.loc[mask, "subcategory"].astype(str))
-            sub_clusters = _cluster_labels(sub_labels, emb, self.cfg.clustering.subcategory_threshold)
-            sub_groups: Dict[int, List[str]] = defaultdict(list)
-            for label, gid in zip(sub_labels, sub_clusters):
-                sub_groups[gid].append(label)
-            sub_canon = _canonical_labels(sub_groups)
+            sub_counts = Counter(sub_labels)
+            sub_uniques = list(sub_counts.keys())
+            if len(sub_uniques) == 0:
+                continue
+            sub_u_clusters = _cluster_labels(sub_uniques, emb, self.cfg.clustering.subcategory_threshold)
+            sub_u_groups: Dict[int, List[str]] = defaultdict(list)
+            for label, gid in zip(sub_uniques, sub_u_clusters):
+                sub_u_groups[gid].append(label)
+            sub_u_canon = _canonical_labels_weighted(sub_u_groups, sub_counts)
+            sub_map = {label: sub_u_canon[gid] for label, gid in zip(sub_uniques, sub_u_clusters)}
             # write back
             idxs = df_combined.index[mask].tolist()
-            for idx, gid in zip(idxs, sub_clusters):
-                subcanon_out.append((idx, sub_canon[gid]))
+            for idx, label in zip(idxs, sub_labels):
+                subcanon_out.append((idx, sub_map[label]))
         sub_map = {idx: label for idx, label in subcanon_out}
         df_combined["subcategory_canon"] = df_combined.index.map(sub_map.get)
 

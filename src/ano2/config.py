@@ -60,6 +60,7 @@ class PipelineConfig(BaseModel):
     batch_size: int = 1
     field_names: FieldNames = Field(default_factory=FieldNames)
     limit: int | None = Field(default=None, description="Process only the first N rows")
+    workers: int = Field(default=1, description="Parallel workers for LLM calls (>=1)")
 
     @staticmethod
     def from_yaml(path: str | Path) -> "PipelineConfig":
