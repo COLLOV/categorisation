@@ -1,0 +1,25 @@
+# Plan de Pipeline de Catégorisation de Feedback
+
+Objectif: Construire une pipeline schema-agnostic qui catégorise des feedbacks en Catégorie, Sous-catégorie et Sentiment (positif/négatif), sans taxonomie prédéfinie. Deux modes LLM: `local` (vLLM) et `api` (provider OpenAI-compatible).
+
+Étapes:
+1) Scaffold du projet avec uv + structure `src/` minimale, logs, config YAML
+2) Abstraction LLM (api/local vLLM) + gestion prompts/validation JSON
+3) Embeddings et clustering pour fusion sémantique (catégorie + sous-catégorie)
+4) Pipeline batch: chargement CSV, appels LLM, fusion, export
+5) Interfaces: CLI (local) et API (FastAPI) avec endpoints batch
+6) YAML de config (entrées, sorties, LLM, embeddings, batch, seuils)
+7) Documentation (README) + exemple d’exécution
+
+Contraintes:
+- Pas de fallback implicite; erreurs explicites et configurables
+- Logs utiles uniquement; éviter artefacts
+- Éviter les races; traitement séquentiel par défaut
+- Modularité stricte; code minimal
+
+Livrables:
+- `pyproject.toml` compatible uv
+- `src/ano2/` (config, llm, embed, pipeline, api, cli, log)
+- `config/pipeline.example.yaml`
+- Mise à jour `README.md`
+
