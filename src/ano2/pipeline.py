@@ -77,6 +77,7 @@ class Pipeline:
             openai_model=self.cfg.embedding.openai_model,
         )
 
+        logger.info("Classifying %d rows (first call may take a few seconds)", len(df))
         results = []
         for i, (_, row) in enumerate(tqdm(df.iterrows(), total=len(df), desc="Classifying", unit="row")):
             text = str(row[self.cfg.io.text_field])
