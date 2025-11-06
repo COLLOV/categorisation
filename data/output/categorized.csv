@@ -1,0 +1,6 @@
+ticket_id,description,creation_date,Sentiment,Category,Sub Category
+JIRA-0105,La souris Bluetooth se déconnecte régulièrement. Nécessite un redémarrage du PC.,2025-04-21 11:22:18,negative,Hardware,Bluetooth Mouse
+JIRA-0309,Mon PC met plus de 10 minutes à démarrer complètement. Performances dégradées.,2025-04-21 11:22:18,negative,Performance,Slow Startup
+JIRA-0430,L'option recto-verso n'apparaît plus dans les paramètres d'impression.,2025-04-21 11:22:18,negative,Functionality,Missing Feature
+JIRA-0050,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-04-22 11:22:18,negative,Access Issue,Permission Denied
+JIRA-0251,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-04-22 11:22:18,negative,Access Issue,Permission Error

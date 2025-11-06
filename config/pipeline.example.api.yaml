@@ -4,6 +4,10 @@ io:
   text_field: description      # column containing the feedback text
   id_field: null
   output_path: data/output/categorized.csv
+  add_timestamp_column: true             # example: enable timestamp column
+  timestamp_column_name: processed_at
+  append_timestamp_to_output_path: true  # example: enable timestamped filename
+  timestamp_format: "%Y%m%d-%H%M%S"
 
 llm:
   mode: null           # uses env LLM_MODE (api|local)
@@ -21,7 +25,7 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: 5  # set to an integer (e.g., 10) to process only first N rows
+limit: 50  # set to an integer (e.g., 10) to process only first N rows
 
 field_names:
   category: Category

@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 from sklearn.cluster import AgglomerativeClustering
+from datetime import datetime, timezone
 from tqdm.auto import tqdm
 
 from .config import PipelineConfig
@@ -130,9 +131,22 @@ class Pipeline:
         # Drop intermediate columns
         out.drop(columns=["category", "subcategory"], inplace=True)
 
+        if self.cfg.io.add_timestamp_column:
+            col = self.cfg.io.timestamp_column_name
+            if col in out.columns:
+                raise ValueError(f"Timestamp column '{col}' already exists in output")
+            ts_iso = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+            out[col] = ts_iso
+
         if self.cfg.io.output_path:
-            out_path = self.cfg.io.output_path
-            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            base_path = self.cfg.io.output_path
+            out_path = base_path
+            if self.cfg.io.append_timestamp_to_output_path:
+                ts_short = datetime.now(timezone.utc).strftime(self.cfg.io.timestamp_format)
+                root, ext = os.path.splitext(base_path)
+                out_path = f"{root}_{ts_short}{ext or '.csv'}"
+            dirn = os.path.dirname(out_path) or "."
+            os.makedirs(dirn, exist_ok=True)
             out.to_csv(out_path, index=False)
             logger.info("Saved output to %s", out_path)
         return out
