@@ -23,5 +23,5 @@ dependencies = [
 ano2 = "ano2.cli:app"
 
 [tool.uv]
+package = true
 dev-dependencies = []
-
