@@ -149,6 +149,28 @@ class Pipeline:
             os.makedirs(dirn, exist_ok=True)
             out.to_csv(out_path, index=False)
             logger.info("Saved output to %s", out_path)
+
+        # Summary counts
+        cat_col = self.cfg.field_names.category
+        sub_col = self.cfg.field_names.subcategory
+        cat_series = out[cat_col].value_counts().sort_values(ascending=False)
+        logger.info("Category counts (%d unique):", cat_series.shape[0])
+        for label, count in cat_series.items():
+            logger.info("  %s: %d", label, int(count))
+
+        sub_df = (
+            out.groupby([cat_col, sub_col]).size().reset_index(name="count").sort_values([cat_col, "count"], ascending=[True, False])
+        )
+        logger.info("Subcategory counts by category:")
+        curr = None
+        for _, row in sub_df.iterrows():
+            cat = row[cat_col]
+            sub = row[sub_col]
+            cnt = int(row["count"])
+            if cat != curr:
+                logger.info("  %s:", cat)
+                curr = cat
+            logger.info("    - %s: %d", sub, cnt)
         return out
 
     def _load(self) -> pd.DataFrame:

@@ -3,4 +3,49 @@ JIRA-0105,La souris Bluetooth se déconnecte régulièrement. Nécessite un red�
 JIRA-0309,Mon PC met plus de 10 minutes à démarrer complètement. Performances dégradées.,2025-04-21 11:22:18,negative,Performance,Slow Startup
 JIRA-0430,L'option recto-verso n'apparaît plus dans les paramètres d'impression.,2025-04-21 11:22:18,negative,Functionality,Missing Feature
 JIRA-0050,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-04-22 11:22:18,negative,Access Issue,Permission Denied
-JIRA-0251,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-04-22 11:22:18,negative,Access Issue,Permission Error
+JIRA-0251,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-04-22 11:22:18,negative,Access Issue,Permission Denied
+JIRA-0198,Le client VPN affiche une erreur 'Authentification échouée' alors que mes identifiants sont corrects.,2025-04-23 11:22:18,negative,Technical Issue,Authentication Error
+JIRA-0474,L'application mobile de gestion des sinistres se ferme automatiquement au démarrage.,2025-04-23 11:22:18,negative,App Performance,Crashes
+JIRA-0047,Mon mot de passe Active Directory a expiré et je n'arrive pas à le réinitialiser via le portail self-service.,2025-04-24 11:22:18,negative,IT Support,Password Reset
+JIRA-0058,L'application CRM se fige régulièrement et nécessite un redémarrage forcé.,2025-04-24 11:22:18,negative,Performance,App Freezing
+JIRA-0236,L'option recto-verso n'apparaît plus dans les paramètres d'impression.,2025-04-24 11:22:18,negative,Functionality,Missing Feature
+JIRA-0480,Les participants n'entendent pas ma voix lors des appels Teams. Le micro semble ne pas fonctionner.,2025-04-24 11:22:18,negative,Technical Issue,Audio Problem
+JIRA-0051,L'application de souscription est extrêmement lente depuis 2 jours. Les temps de chargement dépassent 30 secondes.,2025-04-25 11:22:18,negative,Performance,Slow Loading
+JIRA-0258,Besoin d'installer Adobe Acrobat Pro pour la signature électronique des contrats.,2025-04-25 11:22:18,negative,Feature Request,Software Installation
+JIRA-0383,Adobe Reader affiche 'Le fichier est endommagé' pour tous les PDFs reçus aujourd'hui.,2025-04-25 11:22:18,negative,Functionality,File Corruption
+JIRA-0387,Changement de bureau. Besoin de transférer mon numéro de poste vers le bureau 3.12.,2025-04-25 11:22:18,negative,IT Support,Phone Transfer
+JIRA-0497,OneDrive indique 'Synchronisation en attente' depuis 48h. Les fichiers ne se synchronisent plus.,2025-04-25 11:22:18,negative,Product Issue,Sync Problem
+JIRA-0086,Ma webcam n'est pas détectée par Teams. Impossible de participer aux réunions vidéo.,2025-04-26 11:22:18,negative,Technical Issue,Webcam Problem
+JIRA-0240,Mon badge ne fonctionne plus pour accéder au bâtiment. Refusé à tous les lecteurs.,2025-04-26 11:22:18,negative,Access Issue,Badge Failure
+JIRA-0370,Les participants n'entendent pas ma voix lors des appels Teams. Le micro semble ne pas fonctionner.,2025-04-26 11:22:18,negative,Technical Issue,Audio Problem
+JIRA-0481,Mon PC met plus de 10 minutes à démarrer complètement. Performances dégradées.,2025-04-26 11:22:18,negative,Performance,Slow Startup
+JIRA-0120,Teams indique 'Hors ligne' en permanence alors que j'ai une connexion internet.,2025-04-27 11:22:18,negative,Technical Issue,Connectivity Problem
+JIRA-0281,OneDrive indique 'Synchronisation en attente' depuis 48h. Les fichiers ne se synchronisent plus.,2025-04-27 11:22:18,negative,Functionality,Sync Issues
+JIRA-0300,Changement de bureau. Besoin de transférer mon numéro de poste vers le bureau 3.12.,2025-04-27 11:22:18,negative,IT Support,Phone Transfer
+JIRA-0413,Mon PC met plus de 10 minutes à démarrer complètement. Performances dégradées.,2025-04-27 11:22:18,negative,Performance,Slow Startup
+JIRA-0426,Mon PC met plus de 10 minutes à démarrer complètement. Performances dégradées.,2025-04-27 11:22:18,negative,Performance,Slow Startup
+JIRA-0304,L'application de souscription est extrêmement lente depuis 2 jours. Les temps de chargement dépassent 30 secondes.,2025-04-28 11:22:18,negative,Performance,Slow Loading
+JIRA-0414,Mon écran Dell présente des scintillements constants. Cela devient difficile de travailler.,2025-04-28 11:22:18,negative,Produit,Problème écran
+JIRA-0138,Message d'erreur 'DLL manquante' au lancement de l'outil de calcul des primes.,2025-04-29 11:22:18,negative,Bug Report,Startup Error
+JIRA-0361,Message d'erreur 'DLL manquante' au lancement de l'outil de calcul des primes.,2025-04-29 11:22:18,negative,Bug Report,Startup Error
+JIRA-0427,Collaborateur parti. Besoin de désactiver son compte et transférer ses données.,2025-04-29 11:22:18,negative,Account Management,Deactivation Request
+JIRA-0111,Le disque dur USB de sauvegarde n'est plus détecté par Windows.,2025-04-30 11:22:18,negative,Technical Issue,Hardware Failure
+JIRA-0243,Message d'erreur 'Accès refusé' lors de la tentative de connexion à SINISTRA. Besoin d'un accès urgent.,2025-04-30 11:22:18,negative,Access Issue,Login Error
+JIRA-0057,Mon badge ne fonctionne plus pour accéder au bâtiment. Refusé à tous les lecteurs.,2025-05-01 11:22:18,negative,Access Issue,Badge Failure
+JIRA-0100,OneDrive indique 'Synchronisation en attente' depuis 48h. Les fichiers ne se synchronisent plus.,2025-05-01 11:22:18,negative,Product Issue,Sync Problem
+JIRA-0316,Le scanner du service courrier ne numérise plus les documents. Voyant rouge allumé.,2025-05-01 11:22:18,negative,Technical Issue,Scanner Failure
+JIRA-0362,Ma signature électronique a expiré. Besoin de renouveler le certificat.,2025-05-01 11:22:18,negative,Technical Issue,Certificate Expiry
+JIRA-0255,Suspicion de compromission du compte email. Demande de réinitialisation immédiate.,2025-05-02 11:22:18,negative,Security,Account Compromise
+JIRA-0299,L'option recto-verso n'apparaît plus dans les paramètres d'impression.,2025-05-02 11:22:18,negative,Functionality,Missing Feature
+JIRA-0074,Besoin d'obtenir les droits administrateur sur l'application de tarification pour valider les devis.,2025-05-03 11:22:18,negative,Access,Admin Rights
+JIRA-0116,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-05-03 11:22:18,negative,Access Issue,Permission Denied
+JIRA-0319,Message d'erreur 'DLL manquante' au lancement de l'outil de calcul des primes.,2025-05-03 11:22:18,negative,Bug Report,Startup Error
+JIRA-0090,Mon écran Dell présente des scintillements constants. Cela devient difficile de travailler.,2025-05-04 11:22:18,negative,Produit,Problème écran
+JIRA-0001,Besoin d'une licence Microsoft Office pour le nouveau stagiaire du service comptabilité.,2025-05-05 11:22:18,positive,Request,Software License
+JIRA-0011,Collaborateur parti. Besoin de désactiver son compte et transférer ses données.,2025-05-05 11:22:18,negative,Account Management,Deactivation Request
+JIRA-0075,Suspicion de compromission du compte email. Demande de réinitialisation immédiate.,2025-05-05 11:22:18,negative,Security,Account Compromise
+JIRA-0342,Les participants n'entendent pas ma voix lors des appels Teams. Le micro semble ne pas fonctionner.,2025-05-05 11:22:18,negative,Technical Issue,Audio Problem
+JIRA-0396,"Plusieurs touches du clavier (E, R, T) ne fonctionnent plus correctement. Besoin d'un remplacement.",2025-05-05 11:22:18,negative,Hardware,Keyboard Issue
+JIRA-0254,Le client VPN affiche une erreur 'Authentification échouée' alors que mes identifiants sont corrects.,2025-05-06 11:22:18,negative,Technical Issue,Authentication Error
+JIRA-0135,Le scanner du service courrier ne numérise plus les documents. Voyant rouge allumé.,2025-05-07 11:22:18,negative,Technical Issue,Scanner Failure
+JIRA-0244,L'imprimante Canon du service sinistres affiche un message d'erreur et ne répond plus.,2025-05-07 11:22:18,negative,Technical Issue,Printer Error

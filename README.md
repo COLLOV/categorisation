@@ -39,6 +39,10 @@ Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` et sauveg
 Astuce test rapide:
 - Dans le YAML, mettez `limit: 5` pour traiter uniquement 5 lignes.
 
+En fin de run, un récapitulatif des comptes est affiché dans les logs:
+- Nombre par `Category`
+- Nombre par couple (`Category`, `Sub Category`)
+
 ## API (FastAPI)
 Lancement rapide:
 ```bash
