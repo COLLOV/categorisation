@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from dotenv import load_dotenv
 
 from .config import PipelineConfig
 from .llm import LLMClient
@@ -26,6 +27,7 @@ class ItemsRequest(BaseModel):
 
 def create_app(cfg: PipelineConfig) -> FastAPI:
     app = FastAPI(title="ANO2 Categorization API")
+    load_dotenv(override=False)
     llm = LLMClient.from_env()
     emb = Embeddings.from_config(
         provider=cfg.embedding.provider,
@@ -80,4 +82,3 @@ def create_app(cfg: PipelineConfig) -> FastAPI:
             raise HTTPException(status_code=400, detail=str(e))
 
     return app
-
