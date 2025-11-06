@@ -1,0 +1,21 @@
+ticket_id,description,creation_date,Sentiment,Category,Sub Category,processed_at
+JIRA-0105,La souris Bluetooth se déconnecte régulièrement. Nécessite un redémarrage du PC.,2025-04-21 11:22:18,negative,Hardware,Bluetooth Mouse,2025-11-06T22:35:25Z
+JIRA-0309,Mon PC met plus de 10 minutes à démarrer complètement. Performances dégradées.,2025-04-21 11:22:18,negative,Performance,Slow Startup,2025-11-06T22:35:25Z
+JIRA-0430,L'option recto-verso n'apparaît plus dans les paramètres d'impression.,2025-04-21 11:22:18,negative,Functionality,Missing Feature,2025-11-06T22:35:25Z
+JIRA-0050,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-04-22 11:22:18,negative,Access Issue,Permission Denied,2025-11-06T22:35:25Z
+JIRA-0251,Message 'Vous n'avez pas les autorisations nécessaires' lors de l'accès au dossier \\COMPTA\Factures.,2025-04-22 11:22:18,negative,Access Issue,Permission Denied,2025-11-06T22:35:25Z
+JIRA-0198,Le client VPN affiche une erreur 'Authentification échouée' alors que mes identifiants sont corrects.,2025-04-23 11:22:18,negative,Technical Issue,Authentication Error,2025-11-06T22:35:25Z
+JIRA-0474,L'application mobile de gestion des sinistres se ferme automatiquement au démarrage.,2025-04-23 11:22:18,negative,App Performance,Crashes,2025-11-06T22:35:25Z
+JIRA-0047,Mon mot de passe Active Directory a expiré et je n'arrive pas à le réinitialiser via le portail self-service.,2025-04-24 11:22:18,negative,IT Support,Password Reset,2025-11-06T22:35:25Z
+JIRA-0058,L'application CRM se fige régulièrement et nécessite un redémarrage forcé.,2025-04-24 11:22:18,negative,Performance,App Freezing,2025-11-06T22:35:25Z
+JIRA-0236,L'option recto-verso n'apparaît plus dans les paramètres d'impression.,2025-04-24 11:22:18,negative,Functionality,Missing Feature,2025-11-06T22:35:25Z
+JIRA-0480,Les participants n'entendent pas ma voix lors des appels Teams. Le micro semble ne pas fonctionner.,2025-04-24 11:22:18,negative,Technical Issue,Audio Problem,2025-11-06T22:35:25Z
+JIRA-0051,L'application de souscription est extrêmement lente depuis 2 jours. Les temps de chargement dépassent 30 secondes.,2025-04-25 11:22:18,negative,Performance,Slow Loading,2025-11-06T22:35:25Z
+JIRA-0258,Besoin d'installer Adobe Acrobat Pro pour la signature électronique des contrats.,2025-04-25 11:22:18,negative,Feature Request,Software Installation,2025-11-06T22:35:25Z
+JIRA-0383,Adobe Reader affiche 'Le fichier est endommagé' pour tous les PDFs reçus aujourd'hui.,2025-04-25 11:22:18,negative,Functionality,File Corruption,2025-11-06T22:35:25Z
+JIRA-0387,Changement de bureau. Besoin de transférer mon numéro de poste vers le bureau 3.12.,2025-04-25 11:22:18,negative,IT Support,Phone Transfer,2025-11-06T22:35:25Z
+JIRA-0497,OneDrive indique 'Synchronisation en attente' depuis 48h. Les fichiers ne se synchronisent plus.,2025-04-25 11:22:18,negative,Product Issue,Sync Problem,2025-11-06T22:35:25Z
+JIRA-0086,Ma webcam n'est pas détectée par Teams. Impossible de participer aux réunions vidéo.,2025-04-26 11:22:18,negative,Technical Issue,Webcam Problem,2025-11-06T22:35:25Z
+JIRA-0240,Mon badge ne fonctionne plus pour accéder au bâtiment. Refusé à tous les lecteurs.,2025-04-26 11:22:18,negative,Access Issue,Badge Failure,2025-11-06T22:35:25Z
+JIRA-0370,Les participants n'entendent pas ma voix lors des appels Teams. Le micro semble ne pas fonctionner.,2025-04-26 11:22:18,negative,Technical Issue,Microphone Problem,2025-11-06T22:35:25Z
+JIRA-0481,Mon PC met plus de 10 minutes à démarrer complètement. Performances dégradées.,2025-04-26 11:22:18,negative,Performance,Slow Startup,2025-11-06T22:35:25Z

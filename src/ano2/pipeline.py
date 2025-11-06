@@ -6,6 +6,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
+import json
 import numpy as np
 import pandas as pd
 from sklearn.cluster import AgglomerativeClustering
@@ -171,6 +172,37 @@ class Pipeline:
                 logger.info("  %s:", cat)
                 curr = cat
             logger.info("    - %s: %d", sub, cnt)
+
+        # Persist summary if configured
+        if self.cfg.io.write_summary:
+            if self.cfg.io.summary_path:
+                base = self.cfg.io.summary_path
+            elif self.cfg.io.output_path:
+                root, _ = os.path.splitext(self.cfg.io.output_path)
+                base = f"{root}_summary.json"
+            else:
+                raise ValueError("write_summary=true requires either io.summary_path or io.output_path to derive from")
+
+            out_path = base
+            if self.cfg.io.append_timestamp_to_output_path:
+                ts_short = datetime.now(timezone.utc).strftime(self.cfg.io.timestamp_format)
+                root, ext = os.path.splitext(base)
+                out_path = f"{root}_{ts_short}{ext or '.json'}"
+            dirn = os.path.dirname(out_path) or "."
+            os.makedirs(dirn, exist_ok=True)
+
+            summary = {
+                "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                "total_rows": int(out.shape[0]),
+                "category_counts": [{"category": str(lbl), "count": int(cnt)} for lbl, cnt in cat_series.items()],
+                "subcategory_counts": [
+                    {"category": str(r[cat_col]), "subcategory": str(r[sub_col]), "count": int(r["count"])}
+                    for _, r in sub_df.iterrows()
+                ],
+            }
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(summary, f, ensure_ascii=False, indent=2)
+            logger.info("Saved summary to %s", out_path)
         return out
 
     def _load(self) -> pd.DataFrame:

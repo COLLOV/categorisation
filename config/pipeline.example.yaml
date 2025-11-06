@@ -8,6 +8,8 @@ io:
   timestamp_column_name: processed_at    # name of the timestamp column
   append_timestamp_to_output_path: false # e.g., categorized_20250101-120000.csv
   timestamp_format: "%Y%m%d-%H%M%S"      # used for filename suffix
+  write_summary: false                   # write counts recap to JSON
+  summary_path: null                     # optional: explicit path (defaults to <output>_summary.json)
 
 llm:
   mode: null           # uses env LLM_MODE (api|local)

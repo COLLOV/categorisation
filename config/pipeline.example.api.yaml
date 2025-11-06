@@ -8,6 +8,8 @@ io:
   timestamp_column_name: processed_at
   append_timestamp_to_output_path: true  # example: enable timestamped filename
   timestamp_format: "%Y%m%d-%H%M%S"
+  write_summary: true
+  summary_path: data/output/categorized_summary.json
 
 llm:
   mode: null           # uses env LLM_MODE (api|local)
@@ -25,7 +27,7 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: 50  # set to an integer (e.g., 10) to process only first N rows
+limit: 20  # set to an integer (e.g., 10) to process only first N rows
 
 field_names:
   category: Category

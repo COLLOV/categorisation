@@ -23,6 +23,9 @@ Modifiez `config/pipeline.example.yaml` selon votre source de données:
     - `io.timestamp_column_name`: nom de la colonne d'horodatage
     - `io.append_timestamp_to_output_path`: suffixe l'horodatage dans le nom du fichier
     - `io.timestamp_format`: format du suffixe (par défaut `"%Y%m%d-%H%M%S"`)
+  - Récapitulatif (persisté):
+    - `io.write_summary`: si vrai, écrit un JSON récapitulatif
+    - `io.summary_path`: chemin explicite (sinon `<output>_summary.json`)
 
 LLM via variables d'environnement (exemple dans `.env.exemple`):
 - `LLM_MODE=api|local`
@@ -42,6 +45,7 @@ Astuce test rapide:
 En fin de run, un récapitulatif des comptes est affiché dans les logs:
 - Nombre par `Category`
 - Nombre par couple (`Category`, `Sub Category`)
+Si `io.write_summary: true`, ce même récapitulatif est aussi écrit en JSON.
 
 ## API (FastAPI)
 Lancement rapide:

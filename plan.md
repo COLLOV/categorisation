@@ -15,6 +15,7 @@ Objectif: Construire une pipeline schema-agnostic qui catégorise des feedbacks 
 10) Clarifier l'usage du CLI: `uv run ano2 -c ...` (commande par défaut)
 11) Ajout horodatage output (colonne + suffixe de fichier) piloté par YAML
 12) Récapitulatif des comptes par catégorie et sous-catégorie dans les logs de fin
+13) Persister le récapitulatif en JSON optionnellement (piloté par YAML)
 
 Contraintes:
 - Pas de fallback implicite; erreurs explicites et configurables

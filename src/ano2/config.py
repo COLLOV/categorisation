@@ -17,6 +17,8 @@ class IOConfig(BaseModel):
     timestamp_column_name: str = Field(default="processed_at")
     append_timestamp_to_output_path: bool = Field(default=False)
     timestamp_format: str = Field(default="%Y%m%d-%H%M%S")
+    write_summary: bool = Field(default=False, description="Write counts recap to a JSON file")
+    summary_path: Optional[str] = Field(default=None, description="Optional explicit path for summary JSON")
 
 
 class LLMConfig(BaseModel):
