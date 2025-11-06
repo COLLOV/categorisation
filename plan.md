@@ -10,6 +10,7 @@ Objectif: Construire une pipeline schema-agnostic qui catégorise des feedbacks 
 5) Interfaces: CLI (local) et API (FastAPI) avec endpoints batch
 6) YAML de config (entrées, sorties, LLM, embeddings, batch, seuils)
 7) Documentation (README) + exemple d’exécution
+8) Barre de progression via tqdm pour le batch et la consolidation des sous-catégories
 
 Contraintes:
 - Pas de fallback implicite; erreurs explicites et configurables
@@ -22,4 +23,3 @@ Livrables:
 - `src/ano2/` (config, llm, embed, pipeline, api, cli, log)
 - `config/pipeline.example.yaml`
 - Mise à jour `README.md`
-

@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 from sklearn.cluster import AgglomerativeClustering
+from tqdm.auto import tqdm
 
 from .config import PipelineConfig
 from .embed import Embeddings
@@ -77,12 +78,10 @@ class Pipeline:
         )
 
         results = []
-        for i, row in df.iterrows():
+        for i, (_, row) in enumerate(tqdm(df.iterrows(), total=len(df), desc="Classifying", unit="row")):
             text = str(row[self.cfg.io.text_field])
             parsed = llm.categorize(text)
             results.append(parsed)
-            if (i + 1) % 20 == 0:
-                logger.info("Processed %d/%d", i + 1, len(df))
 
         df_pred = pd.DataFrame(results)
         df_combined = pd.concat([df.reset_index(drop=True), df_pred], axis=1)
@@ -98,7 +97,7 @@ class Pipeline:
 
         # Canonicalize subcategories within each canonical category
         subcanon_out = []
-        for canon_cat in df_combined["category_canon"].unique():
+        for canon_cat in tqdm(df_combined["category_canon"].unique(), desc="Subcategory clustering", unit="cat"):
             mask = df_combined["category_canon"] == canon_cat
             sub_labels = list(df_combined.loc[mask, "subcategory"].astype(str))
             sub_clusters = _cluster_labels(sub_labels, emb, self.cfg.clustering.subcategory_threshold)
@@ -145,4 +144,3 @@ class Pipeline:
         if io.text_field not in df.columns:
             raise KeyError(f"text_field '{io.text_field}' not in columns: {list(df.columns)}")
         return df
-
