@@ -12,6 +12,7 @@ Objectif: Construire une pipeline schema-agnostic qui catégorise des feedbacks 
 7) Documentation (README) + exemple d’exécution
 8) Barre de progression via tqdm pour le batch et la consolidation des sous-catégories
 9) Paramètre `limit` dans le YAML pour limiter rapidement le nombre de lignes traitées lors des tests
+10) Clarifier l'usage du CLI: `uv run ano2 -c ...` (commande par défaut)
 
 Contraintes:
 - Pas de fallback implicite; erreurs explicites et configurables

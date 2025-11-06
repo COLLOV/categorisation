@@ -21,7 +21,7 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: null  # set to an integer (e.g., 10) to process only first N rows
+limit: 5  # set to an integer (e.g., 10) to process only first N rows
 
 field_names:
   category: Category

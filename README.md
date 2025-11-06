@@ -27,7 +27,7 @@ LLM via variables d'environnement (exemple dans `.env.exemple`):
 
 ## Exécution en local (CLI)
 ```bash
-uv run ano2 run -c config/pipeline.example.yaml
+uv run ano2 -c config/pipeline.example.yaml
 ```
 Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` et sauvegarde le CSV si `output_path` est défini. Une barre de progression (tqdm) s'affiche durant la classification et la consolidation des sous‑catégories.
 
