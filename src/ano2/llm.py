@@ -46,10 +46,10 @@ class LLMClient:
     def categorize(self, text: str) -> Dict[str, str]:
         prompt = (
             "You are a precise classifier. Categorize this single feedback into a top-level 'category', a more specific 'subcategory', and 'sentiment'.\n"
-            "Return STRICT JSON only, no backticks or markdown, exactly with lowercase keys: {\"category\":\"...\",\"subcategory\":\"...\",\"sentiment\":\"positive|negative\"}.\n"
+            "Return STRICT JSON only, no backticks or markdown, exactly with lowercase keys: {\"category\":\"...\",\"subcategory\":\"...\",\"sentiment\":\"positive|neutral|negative\"}.\n"
             "Rules:\n"
-            "- Sentiment MUST be one of: positive, negative. Never 'neutral'.\n"
-            "- If uncertain or mixed tone, choose 'negative' (never 'neutral').\n"
+            "- Sentiment MUST be one of: positive, neutral, negative.\n"
+            "- If mixed/uncertain tone, choose 'neutral'.\n"
             "- Use concise, human-readable labels for category/subcategory (max 3 words each).\n\n"
             f"Feedback: {text}"
         )
@@ -91,14 +91,13 @@ class LLMClient:
             if k not in parsed or not isinstance(parsed[k], str) or not parsed[k].strip():
                 raise ValueError(f"Invalid field '{k}' in model output: {parsed}")
         sent = parsed["sentiment"].strip().lower()
-        if sent == "neutral":
-            if os.getenv("NEUTRAL_AS_NEGATIVE") == "1":
-                logger.warning("Coercing 'neutral' to 'negative' due to NEUTRAL_AS_NEGATIVE=1")
-                sent = "negative"
-            else:
-                raise ValueError(f"Invalid sentiment '{parsed['sentiment']}'. Must be 'positive' or 'negative'.")
-        elif sent not in ("positive", "negative"):
-            raise ValueError(f"Invalid sentiment '{parsed['sentiment']}'. Must be 'positive' or 'negative'.")
+        if sent not in ("positive", "neutral", "negative"):
+            raise ValueError(
+                f"Invalid sentiment '{parsed['sentiment']}'. Must be 'positive', 'neutral', or 'negative'."
+            )
+        if sent == "neutral" and os.getenv("NEUTRAL_AS_NEGATIVE") == "1":
+            logger.warning("Coercing 'neutral' to 'negative' due to NEUTRAL_AS_NEGATIVE=1")
+            sent = "negative"
         return {
             "category": parsed["category"].strip(),
             "subcategory": parsed["subcategory"].strip(),

@@ -1,6 +1,6 @@
 # ANO2 – Pipeline de Catégorisation de Feedback
 
-Pipeline schema-agnostic pour catégoriser des feedbacks en trois colonnes: `Category`, `Sub Category`, `Sentiment` (positif ou négatif), sans taxonomie prédéfinie. La consolidation des catégories sémantiquement proches est réalisée via embeddings + clustering (pas de saturation de contexte). Deux modes LLM: `api` (provider OpenAI‑compatible) et `local` (serveur vLLM OpenAI‑compatible).
+Pipeline schema-agnostic pour catégoriser des feedbacks en trois colonnes: `Category`, `Sub Category`, `Sentiment` (positif / neutre / négatif), sans taxonomie prédéfinie. La consolidation des catégories sémantiquement proches est réalisée via embeddings + clustering (pas de saturation de contexte). Deux modes LLM: `api` (provider OpenAI‑compatible) et `local` (serveur vLLM OpenAI‑compatible).
 
 ## Prérequis
 - Python 3.10+
@@ -50,7 +50,7 @@ LLM via variables d'environnement (exemple dans `.env.exemple`):
 ```bash
 uv run ano2 -c config/pipeline.example.yaml
 ```
-Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` et sauvegarde le CSV si `output_path` est défini. Une barre de progression (tqdm) s'affiche durant la classification et la consolidation des sous‑catégories.
+Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` (positif / neutre / négatif) et sauvegarde le CSV si `output_path` est défini. Une barre de progression (tqdm) s'affiche durant la classification et la consolidation des sous‑catégories.
 
 Astuce test rapide:
 - Dans le YAML, mettez `limit: 5` pour traiter uniquement 5 lignes.
