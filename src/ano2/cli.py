@@ -12,6 +12,8 @@ from .log import get_logger
 
 logger = get_logger(__name__)
 app = typer.Typer(add_completion=False, help="ANO2 feedback categorization pipeline")
+app.pretty_exceptions_enable = False
+app.pretty_exceptions_short = True
 
 
 @app.command()
