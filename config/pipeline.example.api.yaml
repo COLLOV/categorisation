@@ -32,7 +32,7 @@ clustering:
 
 batch_size: 1
 limit: 10  # quick run size
-workers: 4   # small parallelism for API
+workers: 2   # conservative parallelism for API
 
 field_names:
   category: Category
