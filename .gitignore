@@ -19,8 +19,12 @@ dist/
 build/
 
 # Project outputs
-data/output/
 run.log
+
+# Data: ignore everything except example data
+data/*
+!data/exemple-data/
+!data/exemple-data/**
 
 # Local pipeline config (keep only example in repo)
 config/pipeline.yaml
