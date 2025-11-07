@@ -31,8 +31,8 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: 12  # set to an integer (e.g., 10) to process only first N rows
-workers: 4   # example: small parallelism for API
+limit: 10  # quick run size
+workers: 4   # small parallelism for API
 
 field_names:
   category: Category
