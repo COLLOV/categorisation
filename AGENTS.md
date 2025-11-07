@@ -1,7 +1,7 @@
 # AGENT.MD - Règles générales pour l'assistant codex
 
 Avant d'implémenter quoi que ce soit, fait un plan avant de passer au code. 
-Le plan doit être écris dans plan.md et être mis à jour à chaque changement.
+
 
 Pipeline doit être schema-agnostic et permet de scaler le traitement à toutes mes sources de données. Utilise un YAML. 
 

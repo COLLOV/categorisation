@@ -12,13 +12,21 @@ class IOConfig(BaseModel):
     path: str
     text_field: str
     id_field: Optional[str] = None
+    # File outputs (choose either output_path or output_dir)
     output_path: Optional[str] = None
+    output_dir: Optional[str] = None
+    output_basename: str = Field(default="categorized.csv")
+
     add_timestamp_column: bool = Field(default=False)
     timestamp_column_name: str = Field(default="processed_at")
+    # Timestamp formatting
     append_timestamp_to_output_path: bool = Field(default=False)
+    timestamp_subdir: bool = Field(default=False)
     timestamp_format: str = Field(default="%Y%m%d-%H%M%S")
+    # Summary outputs
     write_summary: bool = Field(default=False, description="Write counts recap to a JSON file")
     summary_path: Optional[str] = Field(default=None, description="Optional explicit path for summary JSON")
+    summary_basename: Optional[str] = Field(default=None, description="Optional JSON filename when using output_dir (defaults to <stem>_summary.json)")
 
 
 class LLMConfig(BaseModel):

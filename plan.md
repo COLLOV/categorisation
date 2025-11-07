@@ -18,6 +18,7 @@ Objectif: Construire une pipeline schema-agnostic qui catégorise des feedbacks 
 13) Persister le récapitulatif en JSON optionnellement (piloté par YAML)
 14) Optimiser le clustering via déduplication des libellés (cat/sub)
 15) Ajouter la parallélisation contrôlée des appels LLM (`workers`)
+16) Support d'un `output_dir` avec sous-dossier horodaté contenant CSV + JSON
 
 Contraintes:
 - Pas de fallback implicite; erreurs explicites et configurables

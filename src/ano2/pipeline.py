@@ -165,22 +165,40 @@ class Pipeline:
         # Drop intermediate columns
         out.drop(columns=["category", "subcategory"], inplace=True)
 
+        # Prepare timestamps once for consistent naming
+        now = datetime.now(timezone.utc)
+        ts_iso = now.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        ts_short = now.strftime(self.cfg.io.timestamp_format)
+
         if self.cfg.io.add_timestamp_column:
             col = self.cfg.io.timestamp_column_name
             if col in out.columns:
                 raise ValueError(f"Timestamp column '{col}' already exists in output")
-            ts_iso = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
             out[col] = ts_iso
 
-        if self.cfg.io.output_path:
+        # Decide output directory and CSV path
+        out_path = None
+        summary_base_dir = None
+        if self.cfg.io.output_dir:
+            base_dir = self.cfg.io.output_dir
+            if self.cfg.io.timestamp_subdir:
+                base_dir = os.path.join(base_dir, ts_short)
+            os.makedirs(base_dir, exist_ok=True)
+            out_path = os.path.join(base_dir, self.cfg.io.output_basename or "categorized.csv")
+            summary_base_dir = base_dir
+            logger.info("Using output directory: %s", base_dir)
+        elif self.cfg.io.output_path:
             base_path = self.cfg.io.output_path
-            out_path = base_path
             if self.cfg.io.append_timestamp_to_output_path:
-                ts_short = datetime.now(timezone.utc).strftime(self.cfg.io.timestamp_format)
                 root, ext = os.path.splitext(base_path)
                 out_path = f"{root}_{ts_short}{ext or '.csv'}"
+            else:
+                out_path = base_path
             dirn = os.path.dirname(out_path) or "."
             os.makedirs(dirn, exist_ok=True)
+            summary_base_dir = dirn
+
+        if out_path:
             out.to_csv(out_path, index=False)
             logger.info("Saved output to %s", out_path)
 
@@ -209,20 +227,28 @@ class Pipeline:
         # Persist summary if configured
         if self.cfg.io.write_summary:
             if self.cfg.io.summary_path:
-                base = self.cfg.io.summary_path
-            elif self.cfg.io.output_path:
-                root, _ = os.path.splitext(self.cfg.io.output_path)
-                base = f"{root}_summary.json"
+                sum_path = self.cfg.io.summary_path
+                # If using timestamped subdir, we don't alter explicit path
+                dirn = os.path.dirname(sum_path) or "."
+                os.makedirs(dirn, exist_ok=True)
             else:
-                raise ValueError("write_summary=true requires either io.summary_path or io.output_path to derive from")
-
-            out_path = base
-            if self.cfg.io.append_timestamp_to_output_path:
-                ts_short = datetime.now(timezone.utc).strftime(self.cfg.io.timestamp_format)
-                root, ext = os.path.splitext(base)
-                out_path = f"{root}_{ts_short}{ext or '.json'}"
-            dirn = os.path.dirname(out_path) or "."
-            os.makedirs(dirn, exist_ok=True)
+                # derive in same directory as CSV or chosen output_dir
+                if summary_base_dir is None:
+                    raise ValueError("write_summary=true requires an output destination (output_dir or output_path)")
+                if self.cfg.io.summary_basename:
+                    name = self.cfg.io.summary_basename
+                else:
+                    # derive from CSV basename stem
+                    csv_name = os.path.basename(out_path) if out_path else self.cfg.io.output_basename
+                    stem, _ = os.path.splitext(csv_name)
+                    name = f"{stem}_summary.json"
+                sum_path = os.path.join(summary_base_dir, name)
+                # If using filename timestamping (no subdir), mirror suffix
+                if not self.cfg.io.output_dir and self.cfg.io.append_timestamp_to_output_path and out_path:
+                    # insert same suffix into summary name
+                    stem, ext = os.path.splitext(sum_path)
+                    sum_path = f"{stem}_{ts_short}{ext or '.json'}"
+                os.makedirs(summary_base_dir, exist_ok=True)
 
             summary = {
                 "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
@@ -233,9 +259,9 @@ class Pipeline:
                     for _, r in sub_df.iterrows()
                 ],
             }
-            with open(out_path, "w", encoding="utf-8") as f:
+            with open(sum_path, "w", encoding="utf-8") as f:
                 json.dump(summary, f, ensure_ascii=False, indent=2)
-            logger.info("Saved summary to %s", out_path)
+            logger.info("Saved summary to %s", sum_path)
         return out
 
     def _load(self) -> pd.DataFrame:

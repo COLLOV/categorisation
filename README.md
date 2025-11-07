@@ -22,11 +22,23 @@ Modifiez `config/pipeline.example.yaml` selon votre source de données:
   - Horodatage sortie (facultatif):
     - `io.add_timestamp_column`: ajoute une colonne UTC ISO-8601 (ex: `processed_at`)
     - `io.timestamp_column_name`: nom de la colonne d'horodatage
-    - `io.append_timestamp_to_output_path`: suffixe l'horodatage dans le nom du fichier
+    - `io.append_timestamp_to_output_path`: suffixe l'horodatage dans le nom du fichier (Option A)
+    - `io.timestamp_subdir`: crée un sous-dossier horodaté (Option B)
     - `io.timestamp_format`: format du suffixe (par défaut `"%Y%m%d-%H%M%S"`)
   - Récapitulatif (persisté):
     - `io.write_summary`: si vrai, écrit un JSON récapitulatif
-    - `io.summary_path`: chemin explicite (sinon `<output>_summary.json`)
+    - `io.summary_path`: chemin explicite (sinon dérivé)
+    - `io.summary_basename`: si `output_dir` est utilisé, nom du JSON (sinon `<stem>_summary.json`)
+
+Schémas d’écriture recommandés:
+- Option A (héritée): fichier direct avec suffixe horodaté
+  - `io.output_path: data/output/categorized.csv`
+  - `io.append_timestamp_to_output_path: true`
+- Option B (recommandée): dossier avec sous-dossier horodaté contenant CSV + JSON
+  - `io.output_dir: data/output`
+  - `io.output_basename: categorized.csv`
+  - `io.timestamp_subdir: true`
+  - `io.write_summary: true`, `io.summary_basename: summary.json`
 
 LLM via variables d'environnement (exemple dans `.env.exemple`):
 - `LLM_MODE=api|local`

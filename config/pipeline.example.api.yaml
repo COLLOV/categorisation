@@ -3,13 +3,17 @@ io:
   path: data/tickets_jira.csv  # change to your input CSV
   text_field: description      # column containing the feedback text
   id_field: null
-  output_path: data/output/categorized.csv
-  add_timestamp_column: true             # example: enable timestamp column
+  # Option B (recommandé pour ta demande): dossier de sortie + sous-dossier horodaté
+  output_dir: data/output
+  output_basename: categorized.csv
+  timestamp_subdir: true                # crée un sous-dossier horodaté
+  add_timestamp_column: true            # ajoute une colonne ISO-UTC
   timestamp_column_name: processed_at
-  append_timestamp_to_output_path: true  # example: enable timestamped filename
+  append_timestamp_to_output_path: false # on utilise le sous-dossier, pas le suffixe
   timestamp_format: "%Y%m%d-%H%M%S"
   write_summary: true
-  summary_path: data/output/categorized_summary.json
+  summary_path: null                    # dérivé dans le même sous-dossier
+  summary_basename: summary.json
 
 llm:
   mode: null           # uses env LLM_MODE (api|local)
@@ -27,7 +31,7 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: 100  # set to an integer (e.g., 10) to process only first N rows
+limit: 12  # set to an integer (e.g., 10) to process only first N rows
 workers: 4   # example: small parallelism for API
 
 field_names:
