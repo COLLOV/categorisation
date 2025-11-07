@@ -1,6 +1,6 @@
 io:
   type: csv
-  path: data/tickets_jira.csv  # change to your input CSV
+  path: data/exemple-data/tickets_jira.csv  # change to your input CSV
   text_field: description      # column containing the feedback text
   id_field: null
   # Option B (recommandé pour ta demande): dossier de sortie + sous-dossier horodaté
