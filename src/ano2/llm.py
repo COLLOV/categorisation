@@ -69,8 +69,20 @@ class LLMClient:
             raise RuntimeError(f"LLM error {resp.status_code}: {resp.text}")
         data = resp.json()
         content = data["choices"][0]["message"]["content"].strip()
+
+        # Some local models wrap JSON in a fenced code block (```json ... ```)
+        def _unwrap_fence(s: str) -> str:
+            t = s.strip()
+            if t.startswith("```") and t.endswith("```"):
+                t = t[3:-3].strip()
+                # Optional language tag like ```json
+                if t.lower().startswith("json"):
+                    t = t[4:].strip()
+            return t
+
+        raw = _unwrap_fence(content)
         try:
-            parsed = json.loads(content)
+            parsed = json.loads(raw)
         except json.JSONDecodeError:
             raise ValueError(f"Model did not return valid JSON: {content[:200]}")
         # Strict validation
@@ -85,4 +97,3 @@ class LLMClient:
             "subcategory": parsed["subcategory"].strip(),
             "sentiment": sent,
         }
-
