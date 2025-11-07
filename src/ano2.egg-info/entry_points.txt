@@ -1,2 +1,0 @@
-[console_scripts]
-ano2 = ano2.cli:app

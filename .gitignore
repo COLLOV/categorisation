@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+.env
+
+# Build/packaging
+*.egg-info/
+dist/
+build/
+
+# Project outputs
+data/output/
+run.log
+
