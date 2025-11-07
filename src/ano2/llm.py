@@ -44,22 +44,31 @@ class LLMClient:
         return headers
 
     def categorize(self, text: str) -> Dict[str, str]:
-        prompt = (
-            "You are a precise classifier. Categorize this single feedback into a top-level 'category', a more specific 'subcategory', and 'sentiment'.\n"
-            "Return STRICT JSON only, no backticks or markdown, exactly with lowercase keys: {\"category\":\"...\",\"subcategory\":\"...\",\"sentiment\":\"positive|neutral|negative\"}.\n"
+        # Strict v2 prompt: enforce exact JSON and 3-way sentiment
+        system_msg = (
+            "Return only a single JSON object. No markdown, no backticks, no explanations. "
+            "Your output is parsed by json.loads; any extra text will cause a failure."
+        )
+        instr = (
+            "You are a precise classifier. Categorize feedback into: category, subcategory, sentiment.\n"
+            "Output format (exactly): {\"category\":\"...\",\"subcategory\":\"...\",\"sentiment\":\"positive|neutral|negative\"}.\n"
             "Rules:\n"
             "- Sentiment MUST be one of: positive, neutral, negative.\n"
             "- If mixed/uncertain tone, choose 'neutral'.\n"
-            "- Use concise, human-readable labels for category/subcategory (max 3 words each).\n\n"
-            f"Feedback: {text}"
+            "- Use short, human-readable labels for category/subcategory (max 3 words)."
         )
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": instr + "\nFeedback: L'app marche mais parfois elle rame un peu."},
+            {"role": "assistant", "content": "{\"category\":\"Performance\",\"subcategory\":\"Intermittent slowdowns\",\"sentiment\":\"neutral\"}"},
+            {"role": "user", "content": "Feedback: Très satisfait, aucun problème rencontré."},
+            {"role": "assistant", "content": "{\"category\":\"Satisfaction\",\"subcategory\":\"No issues\",\"sentiment\":\"positive\"}"},
+            {"role": "user", "content": f"Feedback: {text}"},
+        ]
+
         body = {
             "model": self.model,
-            "messages": [
-                {"role": "system", "content": "Return only JSON. No prose."},
-                {"role": "user", "content": prompt},
-            ],
-            # Avoid provider-specific response_format to keep compatibility
+            "messages": messages,
             "temperature": 0,
         }
         url = f"{self.base_url.rstrip('/')}/chat/completions"
@@ -92,12 +101,7 @@ class LLMClient:
                 raise ValueError(f"Invalid field '{k}' in model output: {parsed}")
         sent = parsed["sentiment"].strip().lower()
         if sent not in ("positive", "neutral", "negative"):
-            raise ValueError(
-                f"Invalid sentiment '{parsed['sentiment']}'. Must be 'positive', 'neutral', or 'negative'."
-            )
-        if sent == "neutral" and os.getenv("NEUTRAL_AS_NEGATIVE") == "1":
-            logger.warning("Coercing 'neutral' to 'negative' due to NEUTRAL_AS_NEGATIVE=1")
-            sent = "negative"
+            raise ValueError("Invalid sentiment '{0}'. Must be 'positive', 'neutral', or 'negative'.".format(parsed["sentiment"]))
         return {
             "category": parsed["category"].strip(),
             "subcategory": parsed["subcategory"].strip(),
