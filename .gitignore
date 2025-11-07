@@ -22,3 +22,6 @@ build/
 data/output/
 run.log
 
+# Local pipeline config (keep only example in repo)
+config/pipeline.yaml
+config/pipeline.yml
