@@ -31,7 +31,7 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: 10  # quick run size
+limit: null  # default: all rows; set to an integer (e.g., 1000) for quick runs
 workers: 2   # conservative parallelism for API
 
 field_names:

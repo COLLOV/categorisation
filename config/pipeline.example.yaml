@@ -33,7 +33,7 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: 5  # set to an integer (e.g., 10) to process only first N rows
+limit: null  # default: all rows; set to an integer (e.g., 1000) to sample
 workers: 1   # parallel LLM calls (>=1)
 
 field_names:
