@@ -17,7 +17,7 @@ Modifiez `config/pipeline.example.yaml` selon votre source de données:
 - `io.path`: chemin du CSV (ou JSONL si `io.type: jsonl`)
 - `io.text_field`: colonne contenant le texte du feedback
 - `io.output_path`: chemin du CSV de sortie
-- `limit`: limite optionnelle du nombre de lignes à traiter (utile pour tester rapidement)
+- `limit`: limite optionnelle du nombre de lignes à traiter. Par défaut (`null` ou omis) tout le fichier est traité; mettez un entier pour échantillonner (utile pour tester rapidement).
   - `workers`: nombre de workers pour paralléliser les appels LLM (>=1)
   - Horodatage sortie (facultatif):
     - `io.add_timestamp_column`: ajoute une colonne UTC ISO-8601 (ex: `processed_at`)
@@ -53,7 +53,7 @@ uv run ano2 -c config/pipeline.example.yaml
 Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` (positif / neutre / négatif) et sauvegarde le CSV si `output_path` est défini. Une barre de progression (tqdm) s'affiche durant la classification et la consolidation des sous‑catégories.
 
 Astuce test rapide:
-- Dans le YAML, mettez `limit: 5` pour traiter uniquement 5 lignes.
+- Par défaut, toutes les lignes du CSV sont traitées. Pour tester rapidement, mettez `limit: 5` (ou tout autre entier) pour ne traiter qu'un échantillon.
 
 En fin de run, un récapitulatif des comptes est affiché dans les logs:
 - Nombre par `Category`
