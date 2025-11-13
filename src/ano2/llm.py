@@ -53,7 +53,7 @@ class LLMClient:
         )
         instr = (
             "You are a precise classifier. Categorize feedback and extract keywords.\n"
-            "Output format (exactly): {\\\"category\\\":\\\"...\\\",\\\"subcategory\\\":\\\"...\\\",\\\"sentiment\\\":\\\"positive|neutral|negative\\\",\\\"keywords\\\":[\\\"k1\\\",\\\"k2\\\",\\\"k3\\\"]}.\n"
+            'Output format (exactly): {"category":"...","subcategory":"...","sentiment":"positive|neutral|negative","keywords":["k1","k2","k3"]}.\n'
             "Rules:\n"
             "- Sentiment MUST be one of: positive, neutral, negative.\n"
             "- If mixed/uncertain tone, choose 'neutral'.\n"
@@ -63,9 +63,9 @@ class LLMClient:
         messages = [
             {"role": "system", "content": system_msg},
             {"role": "user", "content": instr + "\nFeedback: L'app marche mais parfois elle rame un peu."},
-            {"role": "assistant", "content": "{\\\"category\\\":\\\"Performance\\\",\\\"subcategory\\\":\\\"Intermittent slowdowns\\\",\\\"sentiment\\\":\\\"neutral\\\",\\\"keywords\\\":[\\\"rame\\\"]}"},
+            {"role": "assistant", "content": '{"category":"Performance","subcategory":"Intermittent slowdowns","sentiment":"neutral","keywords":["rame"]}'},
             {"role": "user", "content": "Feedback: Très satisfait, aucun problème rencontré."},
-            {"role": "assistant", "content": "{\\\"category\\\":\\\"Satisfaction\\\",\\\"subcategory\\\":\\\"No issues\\\",\\\"sentiment\\\":\\\"positive\\\",\\\"keywords\\\":[\\\"satisfait\\\"]}"},
+            {"role": "assistant", "content": '{"category":"Satisfaction","subcategory":"No issues","sentiment":"positive","keywords":["satisfait"]}'},
             {"role": "user", "content": f"Feedback: {text}"},
         ]
 
@@ -74,6 +74,9 @@ class LLMClient:
             "messages": messages,
             "temperature": 0,
         }
+        # Optional JSON mode for providers that support it (e.g., OpenAI)
+        if os.getenv("LLM_JSON_MODE", "0") not in ("0", "false", "False", ""):
+            body["response_format"] = {"type": "json_object"}
         url = f"{self.base_url.rstrip('/')}/chat/completions"
         logger.debug("POST %s", url)
         with httpx.Client(timeout=60) as client:
@@ -94,10 +97,51 @@ class LLMClient:
             return t
 
         raw = _unwrap_fence(content)
-        try:
-            parsed = json.loads(raw)
-        except json.JSONDecodeError:
-            raise ValueError(f"Model did not return valid JSON: {content[:200]}")
+        strict_json = os.getenv("LLM_STRICT_JSON", "1") not in ("0", "false", "False")
+        parsed = None
+        if strict_json:
+            try:
+                parsed = json.loads(raw)
+            except json.JSONDecodeError:
+                raise ValueError(f"Model did not return valid JSON (strict): {content[:200]}")
+        else:
+            # Lenient parsing for non-conformant providers (dev/local only)
+            last_err: Exception | None = None
+            # Attempt 1: direct JSON object/array
+            try:
+                parsed = json.loads(raw)
+            except Exception as e:
+                last_err = e
+            # Attempt 2: content may be a JSON-escaped string of the object (wrapped quotes)
+            if parsed is None and raw.strip().startswith("\"") and raw.strip().endswith("\""):
+                try:
+                    inner = json.loads(raw.strip())
+                    if isinstance(inner, str):
+                        parsed = json.loads(inner)
+                        raw = inner
+                except Exception as e:
+                    last_err = e
+            # Attempt 3: escaped JSON object without outer quotes, e.g. {\"a\":1}
+            if parsed is None and raw.strip().startswith("{\\\"") and '\\"' in raw:
+                try:
+                    unescaped = json.loads("\"" + raw + "\"")  # decode escapes
+                    parsed = json.loads(unescaped)
+                    raw = unescaped
+                except Exception as e:
+                    last_err = e
+            # Attempt 4: extract the first top-level {...} window if extra text surrounds JSON
+            if parsed is None and "{" in raw and "}" in raw:
+                i = raw.find("{")
+                j = raw.rfind("}")
+                if j > i >= 0:
+                    candidate = raw[i : j + 1]
+                    try:
+                        parsed = json.loads(candidate)
+                        raw = candidate
+                    except Exception as e:
+                        last_err = e
+            if parsed is None:
+                raise ValueError(f"Model did not return valid JSON: {content[:200]}")
         # Strict validation
         for k in ("category", "subcategory", "sentiment"):
             if k not in parsed or not isinstance(parsed[k], str) or not parsed[k].strip():

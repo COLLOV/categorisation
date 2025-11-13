@@ -52,6 +52,10 @@ Variables d'environnement (mots‑clés):
 - `KEYWORDS_MIN_LENGTH` (default `2`): longueur minimale (après normalisation) pour garder un mot‑clé.
 - `KEYWORDS_SINGLE_WORDS_ONLY` (default `1`): n'autoriser que des mots simples (pas de phrases, ni noms composés avec espace/tiret).
 
+JSON strict vs tolérant:
+- `LLM_STRICT_JSON` (default `1`): en mode strict, la réponse du modèle DOIT être un JSON valide (objet) sans texte additionnel; sinon erreur. Recommandé en prod.
+- `LLM_JSON_MODE` (default `0`): si supporté par le provider (OpenAI, etc.), active `response_format: {type: json_object}` pour forcer un JSON côté modèle.
+
 ## Exécution en local (CLI)
 Usage simple avec script:
 ```bash
