@@ -1,6 +1,6 @@
 # ANO2 – Pipeline de Catégorisation de Feedback
 
-Pipeline schema-agnostic pour catégoriser des feedbacks en trois colonnes: `Category`, `Sub Category`, `Sentiment` (positif / neutre / négatif), sans taxonomie prédéfinie. La consolidation des catégories sémantiquement proches est réalisée via embeddings + clustering (pas de saturation de contexte). Deux modes LLM: `api` (provider OpenAI‑compatible) et `local` (serveur vLLM OpenAI‑compatible).
+Pipeline schema-agnostic pour catégoriser des feedbacks en trois colonnes: `Category`, `Sub Category`, `Sentiment` (positif / neutre / négatif), et extraire une liste de mots‑clés `Keywords` liés au problème. Pas de taxonomie prédéfinie. La consolidation des catégories sémantiquement proches est réalisée via embeddings + clustering (pas de saturation de contexte). Deux modes LLM: `api` (provider OpenAI‑compatible) et `local` (serveur vLLM OpenAI‑compatible).
 
 ## Prérequis
 - Python 3.10+
@@ -46,11 +46,26 @@ LLM via variables d'environnement (exemple dans `.env.exemple`):
 - `OPENAI_API_KEY` (requis pour `api`)
 - `LLM_MODEL` (ex: `gpt-4.1` ou modèle local)
 
+Variables d'environnement (mots‑clés):
+- `KEYWORDS_ENFORCE_IN_TEXT` (default `1`): ne garder que des mots présents dans le texte.
+- `KEYWORDS_DROP_GENERIC` (default `1`): retirer des termes génériques (ex: "issue", "problem", "application", "utilisateur").
+- `KEYWORDS_MIN_LENGTH` (default `2`): longueur minimale (après normalisation) pour garder un mot‑clé.
+- `KEYWORDS_SINGLE_WORDS_ONLY` (default `1`): n'autoriser que des mots simples (pas de phrases, ni noms composés avec espace/tiret).
+
 ## Exécution en local (CLI)
+Usage simple avec script:
 ```bash
-uv run ano2 -c config/pipeline.example.yaml
+# Raccourci direct
+./start.sh config/pipeline.example.yaml
+
+# Ou forme explicite
+./start.sh pipeline -c config/pipeline.example.yaml
 ```
-Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` (positif / neutre / négatif) et sauvegarde le CSV si `output_path` est défini. Une barre de progression (tqdm) s'affiche durant la classification et la consolidation des sous‑catégories.
+Résultat: ajoute les colonnes `Category`, `Sub Category`, `Sentiment` (positif / neutre / négatif) et `Keywords` (liste de mots‑clés).
+Par défaut, `Keywords` est sérialisée en chaîne JSON (ex: `["latence","erreur 500"]`) dans le CSV. Pour usage NL‑SQL/
+textuel simple, vous pouvez aussi activer `field_names.keywords_text` (ex: `Keywords Text`) qui contient une version jointe `latence; erreur 500`.
+
+Note sur les mots‑clés: ils sont ancrés dans le texte. Le modèle est instruit de n’extraire que des mots/expressions réellement présents dans le feedback et un filtre retire les termes trop génériques. La liste peut donc être plus courte si le texte ne contient que peu de termes pertinents.
 
 Astuce test rapide:
 - Par défaut, toutes les lignes du CSV sont traitées. Pour tester rapidement, mettez `limit: 5` (ou tout autre entier) pour ne traiter qu'un échantillon.
@@ -64,7 +79,7 @@ Si `io.write_summary: true`, ce même récapitulatif est aussi écrit en JSON.
 Lancement rapide:
 ```bash
 export PIPELINE_CONFIG=config/pipeline.example.yaml
-uv run uvicorn ano2.server:app --reload --host 0.0.0.0 --port 8080
+./start.sh api -c "$PIPELINE_CONFIG" -H 0.0.0.0 -p 8080
 ```
 
 Exemple d’app (intégration dans votre code):
@@ -78,6 +93,12 @@ app = create_app(cfg)
 Endpoints:
 - `GET /healthz`
 - `POST /categorize` avec body `{ "items": [{"id": "1", "text": "..."}] }`
+
+## Script de démarrage
+`start.sh` facilite le lancement:
+- `./start.sh install` — installe les dépendances (uv sync)
+- `./start.sh pipeline -c <config.yaml>` — exécute le pipeline CLI
+- `./start.sh api -c <config.yaml> [-H host] [-p port] [--no-reload]` — lance l’API
 
 ## Notes de conception
 - Pas de fallback implicite: en cas de sortie LLM invalide, l'erreur est explicite

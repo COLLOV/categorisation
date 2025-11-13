@@ -31,10 +31,13 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: null  # default: all rows; set to an integer (e.g., 1000) for quick runs
+limit: 3  # default: all rows; set to an integer (e.g., 1000) for quick runs
 workers: 2   # conservative parallelism for API
 
 field_names:
   category: Category
   subcategory: Sub Category
   sentiment: Sentiment
+  keywords: Keywords
+  # Désactivé par défaut: ne pas ajouter de colonne "Keywords Text"
+  keywords_text: null

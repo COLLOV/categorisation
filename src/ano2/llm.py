@@ -4,6 +4,8 @@ import json
 import os
 from dataclasses import dataclass
 from typing import Dict
+import re
+import unicodedata
 
 import httpx
 
@@ -43,26 +45,27 @@ class LLMClient:
             headers["Authorization"] = f"Bearer {self.api_key}"
         return headers
 
-    def categorize(self, text: str) -> Dict[str, str]:
+    def categorize(self, text: str) -> Dict[str, str | list[str]]:
         # Strict v2 prompt: enforce exact JSON and 3-way sentiment
         system_msg = (
             "Return only a single JSON object. No markdown, no backticks, no explanations. "
             "Your output is parsed by json.loads; any extra text will cause a failure."
         )
         instr = (
-            "You are a precise classifier. Categorize feedback into: category, subcategory, sentiment.\n"
-            "Output format (exactly): {\"category\":\"...\",\"subcategory\":\"...\",\"sentiment\":\"positive|neutral|negative\"}.\n"
+            "You are a precise classifier. Categorize feedback and extract keywords.\n"
+            "Output format (exactly): {\\\"category\\\":\\\"...\\\",\\\"subcategory\\\":\\\"...\\\",\\\"sentiment\\\":\\\"positive|neutral|negative\\\",\\\"keywords\\\":[\\\"k1\\\",\\\"k2\\\",\\\"k3\\\"]}.\n"
             "Rules:\n"
             "- Sentiment MUST be one of: positive, neutral, negative.\n"
             "- If mixed/uncertain tone, choose 'neutral'.\n"
-            "- Use short, human-readable labels for category/subcategory (max 3 words)."
+            "- Use short, human-readable labels for category/subcategory (max 3 words).\n"
+            "- keywords: 3 to 8 single words (no phrases, no hyphenated compounds), each word must appear verbatim in the feedback as a standalone word; keep the text language; lowercase; no emojis; no duplicates; avoid generic fillers (e.g., 'issue', 'problem', 'application', 'user', 'support'). If few are available, return fewer."
         )
         messages = [
             {"role": "system", "content": system_msg},
             {"role": "user", "content": instr + "\nFeedback: L'app marche mais parfois elle rame un peu."},
-            {"role": "assistant", "content": "{\"category\":\"Performance\",\"subcategory\":\"Intermittent slowdowns\",\"sentiment\":\"neutral\"}"},
+            {"role": "assistant", "content": "{\\\"category\\\":\\\"Performance\\\",\\\"subcategory\\\":\\\"Intermittent slowdowns\\\",\\\"sentiment\\\":\\\"neutral\\\",\\\"keywords\\\":[\\\"rame\\\"]}"},
             {"role": "user", "content": "Feedback: Très satisfait, aucun problème rencontré."},
-            {"role": "assistant", "content": "{\"category\":\"Satisfaction\",\"subcategory\":\"No issues\",\"sentiment\":\"positive\"}"},
+            {"role": "assistant", "content": "{\\\"category\\\":\\\"Satisfaction\\\",\\\"subcategory\\\":\\\"No issues\\\",\\\"sentiment\\\":\\\"positive\\\",\\\"keywords\\\":[\\\"satisfait\\\"]}"},
             {"role": "user", "content": f"Feedback: {text}"},
         ]
 
@@ -102,8 +105,106 @@ class LLMClient:
         sent = parsed["sentiment"].strip().lower()
         if sent not in ("positive", "neutral", "negative"):
             raise ValueError("Invalid sentiment '{0}'. Must be 'positive', 'neutral', or 'negative'.".format(parsed["sentiment"]))
+        # keywords: ensure list[str]
+        kws: list[str]
+        if "keywords" not in parsed:
+            raise ValueError(f"Missing 'keywords' in model output: {parsed}")
+        if isinstance(parsed["keywords"], list):
+            kws = [str(x).strip() for x in parsed["keywords"] if str(x).strip()]
+        elif isinstance(parsed["keywords"], str):
+            # allow comma-separated string as a fallback
+            kws = [x.strip() for x in parsed["keywords"].split(",") if x.strip()]
+        else:
+            raise ValueError(f"Invalid 'keywords' type: {type(parsed['keywords'])}")
+        # Deduplicate while preserving order, lowercase
+        seen = set()
+        clean_kws: list[str] = []
+        for k in kws:
+            kl = k.lower()
+            if kl not in seen:
+                seen.add(kl)
+                clean_kws.append(kl)
+        
+        # Optional: enforce that keywords are grounded in the input text and non-generic
+        def _strip_accents(s: str) -> str:
+            return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
+
+        def _norm(s: str) -> str:
+            t = _strip_accents(s.lower())
+            # Normalize punctuation to spaces
+            t = re.sub(r"[\s\-_/]+", " ", t)
+            t = re.sub(r"[^\w\s]", " ", t)
+            t = re.sub(r"\s+", " ", t).strip()
+            return t
+
+        def _contains_word(text_norm: str, word_norm: str) -> bool:
+            if not word_norm:
+                return False
+            return re.search(rf"\b{re.escape(word_norm)}\b", text_norm) is not None
+
+        enforce = os.getenv("KEYWORDS_ENFORCE_IN_TEXT", "1") != "0"
+        drop_generic = os.getenv("KEYWORDS_DROP_GENERIC", "1") != "0"
+        single_words_only = os.getenv("KEYWORDS_SINGLE_WORDS_ONLY", "1") != "0"
+        try:
+            min_len = max(1, int(os.getenv("KEYWORDS_MIN_LENGTH", "2")))
+        except Exception:
+            min_len = 2
+
+        text_norm = _norm(text)
+        # Build a map from normalized token -> original lowercased token as it appears in text
+        norm_to_orig: Dict[str, str] = {}
+        for m in re.finditer(r"\w+", text, flags=re.UNICODE):
+            orig_tok = m.group(0)
+            norm_tok = _strip_accents(orig_tok.lower())
+            if norm_tok and norm_tok not in norm_to_orig:
+                norm_to_orig[norm_tok] = orig_tok.lower()
+        generic_singletons = {
+            # English
+            "issue", "issues", "problem", "problems", "user", "users", "client", "clients",
+            "app", "application", "service", "services", "support", "team", "software", "system",
+            # French
+            "problème", "probleme", "problèmes", "problemes", "utilisateur", "utilisateurs",
+            "client", "clients", "appli", "application", "service", "services", "support", "équipe", "equipe",
+        }
+        http_code_whitelist = {"400","401","403","404","408","409","410","422","429","500","501","502","503","504"}
+
+        def _is_generic(kw_norm: str) -> bool:
+            if len(kw_norm) < min_len:
+                return True
+            if kw_norm.isdigit() and kw_norm not in http_code_whitelist:
+                return True
+            if kw_norm in generic_singletons:
+                return True
+            return False
+
+        # Build candidate terms (single words only when enforced)
+        candidates: list[str] = []
+        for kw in clean_kws:
+            kn = _norm(kw)
+            if single_words_only and (" " in kn):
+                # Drop compound/hyphenated/multi-word suggestions entirely
+                continue
+            candidates.append(kn)
+
+        # Filter candidates
+        filtered: list[str] = []
+        seen_terms = set()
+        for term in candidates:
+            if term in seen_terms:
+                continue
+            seen_terms.add(term)
+            if drop_generic and _is_generic(term):
+                continue
+            if enforce and not _contains_word(text_norm, term):
+                continue
+            filtered.append(term)
+
+        # If everything got filtered and enforcement is on, allow returning 0..n keywords (strict grounding).
+        # Map normalized terms back to original lowercase tokens when available
+        final_kws = [norm_to_orig.get(t, t) for t in filtered] if filtered or enforce else clean_kws
         return {
             "category": parsed["category"].strip(),
             "subcategory": parsed["subcategory"].strip(),
             "sentiment": sent,
+            "keywords": final_kws,
         }

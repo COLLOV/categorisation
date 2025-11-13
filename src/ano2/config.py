@@ -58,6 +58,9 @@ class FieldNames(BaseModel):
     category: str = Field(default="Category")
     subcategory: str = Field(default="Sub Category")
     sentiment: str = Field(default="Sentiment")
+    keywords: str = Field(default="Keywords")
+    # Optional plain-text rendering of keywords (joined string) for NL SQL
+    keywords_text: Optional[str] = Field(default=None)
 
 
 class PipelineConfig(BaseModel):

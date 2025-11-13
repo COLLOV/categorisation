@@ -108,7 +108,7 @@ class Pipeline:
 
         logger.info("Classifying %d rows (first call may take a few seconds)", len(df))
         texts = [str(df.iloc[i][self.cfg.io.text_field]) for i in range(len(df))]
-        results: List[Dict[str, str]] = [None] * len(texts)  # type: ignore
+        results: List[Dict[str, Any]] = [None] * len(texts)  # type: ignore
         if self.cfg.workers <= 1:
             for i, text in enumerate(tqdm(texts, total=len(texts), desc="Classifying", unit="row")):
                 results[i] = llm.categorize(text)
@@ -165,11 +165,46 @@ class Pipeline:
                 "category_canon": self.cfg.field_names.category,
                 "subcategory_canon": self.cfg.field_names.subcategory,
                 "sentiment": self.cfg.field_names.sentiment,
+                "keywords": self.cfg.field_names.keywords,
             },
             inplace=True,
         )
         # Drop intermediate columns
         out.drop(columns=["category", "subcategory"], inplace=True)
+
+        # Serialize keywords for CSV and optionally provide a text-friendly version
+        k_col = getattr(self.cfg.field_names, "keywords", None)
+        if k_col and k_col in out.columns:
+            def _kw_to_json(v: Any) -> str:
+                if isinstance(v, (list, tuple)):
+                    return json.dumps(list(v), ensure_ascii=False)
+                if v is None or (isinstance(v, float) and pd.isna(v)):
+                    return "[]"
+                # fallback: wrap single value
+                return json.dumps([str(v)], ensure_ascii=False)
+
+            out[k_col] = out[k_col].map(_kw_to_json)
+
+            # Optional plain text keywords column for NL SQL usage
+            k_text_col = getattr(self.cfg.field_names, "keywords_text", None)
+            if k_text_col:
+                def _kw_to_text(v: Any) -> str:
+                    if isinstance(v, str):
+                        # if already JSON string, parse then join
+                        try:
+                            arr = json.loads(v)
+                            if isinstance(arr, list):
+                                return "; ".join(map(str, arr))
+                        except Exception:
+                            pass
+                        return v
+                    if isinstance(v, (list, tuple)):
+                        return "; ".join(str(x) for x in v)
+                    if v is None or (isinstance(v, float) and pd.isna(v)):
+                        return ""
+                    return str(v)
+
+                out[k_text_col] = out[k_col].map(_kw_to_text)
 
         # Prepare timestamps once for consistent naming
         now = datetime.now(timezone.utc)
