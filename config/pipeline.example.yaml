@@ -33,10 +33,13 @@ clustering:
   subcategory_threshold: 0.2
 
 batch_size: 1
-limit: null  # default: all rows; set to an integer (e.g., 1000) to sample
+limit: 3  # default: all rows; set to an integer (e.g., 1000) to sample
 workers: 1   # parallel LLM calls (>=1)
 
 field_names:
   category: Category
   subcategory: Sub Category
   sentiment: Sentiment
+  keywords: Keywords
+  # Pour désactiver la colonne texte des mots-clés (plain text), laissez à null
+  keywords_text: null
