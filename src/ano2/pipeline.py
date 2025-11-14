@@ -99,7 +99,7 @@ class Pipeline:
             )
         else:
             logger.info("Loaded %d rows (no limit)", orig_len)
-        llm = LLMClient.from_env()
+        llm = LLMClient.from_config(self.cfg.llm, self.cfg.keywords)
         emb = Embeddings.from_config(
             provider=self.cfg.embedding.provider,
             local_model=self.cfg.embedding.local_model,

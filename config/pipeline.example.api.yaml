@@ -16,10 +16,16 @@ io:
   summary_basename: summary.json
 
 llm:
-  mode: null           # uses env LLM_MODE (api|local)
-  model: null          # uses env LLM_MODEL
-  base_url: null       # uses env OPENAI_BASE_URL
+  mode: api
+  model: gpt-4.1
+  base_url: https://api.openai.com/v1
   api_key_env: OPENAI_API_KEY
+  strict_json: true
+  json_mode: true
+  http_timeout: 120
+  max_tokens: 256
+  max_retries: 1
+  retry_invalid_json: true
 
 embedding:
   provider: openai
@@ -41,3 +47,9 @@ field_names:
   keywords: Keywords
   # Désactivé par défaut: ne pas ajouter de colonne "Keywords Text"
   keywords_text: null
+
+keywords:
+  single_words_only: true
+  enforce_in_text: true
+  drop_generic: true
+  min_length: 2

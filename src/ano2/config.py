@@ -34,6 +34,13 @@ class LLMConfig(BaseModel):
     model: Optional[str] = None
     base_url: Optional[str] = None
     api_key_env: str = Field(default="OPENAI_API_KEY")
+    # Response enforcement and robustness
+    strict_json: bool = Field(default=True, description="Require model to return a valid JSON object")
+    json_mode: bool = Field(default=False, description="If provider supports it, set response_format=json_object")
+    http_timeout: float = Field(default=60.0, description="HTTP timeout in seconds")
+    max_tokens: Optional[int] = Field(default=None, description="Optional max tokens for the response")
+    max_retries: int = Field(default=1, description="Retries on invalid JSON (strict only)")
+    retry_invalid_json: bool = Field(default=True, description="Retry once with corrective hint if invalid JSON")
 
 
 class EmbeddingConfig(BaseModel):
@@ -63,6 +70,13 @@ class FieldNames(BaseModel):
     keywords_text: Optional[str] = Field(default=None)
 
 
+class KeywordsConfig(BaseModel):
+    single_words_only: bool = Field(default=True, description="Only single words, no phrases/compounds")
+    enforce_in_text: bool = Field(default=True, description="Each keyword must appear in the text")
+    drop_generic: bool = Field(default=True, description="Drop generic/filler terms")
+    min_length: int = Field(default=2, description="Minimum keyword length after normalization")
+
+
 class PipelineConfig(BaseModel):
     io: IOConfig
     llm: LLMConfig = Field(default_factory=LLMConfig)
@@ -72,6 +86,7 @@ class PipelineConfig(BaseModel):
     field_names: FieldNames = Field(default_factory=FieldNames)
     limit: int | None = Field(default=None, description="Process only the first N rows")
     workers: int = Field(default=1, description="Parallel workers for LLM calls (>=1)")
+    keywords: KeywordsConfig = Field(default_factory=KeywordsConfig)
 
     @staticmethod
     def from_yaml(path: str | Path) -> "PipelineConfig":

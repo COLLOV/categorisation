@@ -10,6 +10,7 @@ import unicodedata
 import httpx
 
 from .log import get_logger
+from .config import LLMConfig, KeywordsConfig
 
 
 logger = get_logger(__name__)
@@ -27,6 +28,18 @@ class LLMClient:
     base_url: str
     api_key: str | None
     model: str
+    # Runtime behavior
+    strict_json: bool = True
+    json_mode: bool = False
+    http_timeout: float = 60.0
+    max_tokens: int | None = None
+    max_retries: int = 1
+    retry_invalid_json: bool = True
+    # Keywords rules
+    kw_single_words_only: bool = True
+    kw_enforce_in_text: bool = True
+    kw_drop_generic: bool = True
+    kw_min_length: int = 2
 
     @classmethod
     def from_env(cls) -> "LLMClient":
@@ -36,8 +49,47 @@ class LLMClient:
         api_key = os.getenv("OPENAI_API_KEY")
         if mode == "api" and not api_key:
             raise RuntimeError("LLM_MODE=api requires OPENAI_API_KEY")
-        # For local vLLM, api_key may be None; many servers accept empty keys.
-        return cls(base_url=base_url, api_key=api_key, model=model)
+        return cls(
+            base_url=base_url,
+            api_key=api_key,
+            model=model,
+            strict_json=os.getenv("LLM_STRICT_JSON", "1") not in ("0", "false", "False"),
+            json_mode=os.getenv("LLM_JSON_MODE", "0").lower() not in ("0", "false", ""),
+            http_timeout=float(os.getenv("LLM_HTTP_TIMEOUT", "60")),
+            max_tokens=int(os.getenv("LLM_MAX_TOKENS", "0")) or None,
+            max_retries=max(0, int(os.getenv("LLM_MAX_RETRIES", "1"))),
+            retry_invalid_json=os.getenv("LLM_RETRY_INVALID_JSON", "1").lower() not in ("0", "false", ""),
+            kw_single_words_only=os.getenv("KEYWORDS_SINGLE_WORDS_ONLY", "1") not in ("0", "false", "False"),
+            kw_enforce_in_text=os.getenv("KEYWORDS_ENFORCE_IN_TEXT", "1") not in ("0", "false", "False"),
+            kw_drop_generic=os.getenv("KEYWORDS_DROP_GENERIC", "1") not in ("0", "false", "False"),
+            kw_min_length=max(1, int(os.getenv("KEYWORDS_MIN_LENGTH", "2"))),
+        )
+
+    @classmethod
+    def from_config(cls, llm: LLMConfig, keywords: KeywordsConfig | None = None) -> "LLMClient":
+        # Prefer YAML, fall back to env
+        base_url = llm.base_url or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+        model = llm.model or _required_env("LLM_MODEL")
+        mode = llm.mode or os.getenv("LLM_MODE", "api")
+        api_key = os.getenv(llm.api_key_env)
+        if mode == "api" and not api_key:
+            raise RuntimeError("LLM_MODE=api requires OPENAI_API_KEY (or configured api_key_env)")
+        kw = keywords or KeywordsConfig()
+        return cls(
+            base_url=base_url,
+            api_key=api_key,
+            model=model,
+            strict_json=llm.strict_json,
+            json_mode=llm.json_mode,
+            http_timeout=float(llm.http_timeout),
+            max_tokens=llm.max_tokens,
+            max_retries=max(0, int(llm.max_retries)),
+            retry_invalid_json=bool(llm.retry_invalid_json),
+            kw_single_words_only=kw.single_words_only,
+            kw_enforce_in_text=kw.enforce_in_text,
+            kw_drop_generic=kw.drop_generic,
+            kw_min_length=max(1, int(kw.min_length)),
+        )
 
     def _headers(self) -> Dict[str, str]:
         headers = {"Content-Type": "application/json"}
@@ -76,27 +128,17 @@ class LLMClient:
             "temperature": 0,
         }
         # Optional max tokens
-        try:
-            max_tokens = int(os.getenv("LLM_MAX_TOKENS", "0"))
-        except Exception:
-            max_tokens = 0
-        if max_tokens > 0:
-            base_body["max_tokens"] = max_tokens
+        if self.max_tokens and self.max_tokens > 0:
+            base_body["max_tokens"] = self.max_tokens
         # Optional JSON mode for providers that support it (e.g., OpenAI)
-        if os.getenv("LLM_JSON_MODE", "0").lower() not in ("0", "false", ""):
+        if self.json_mode:
             base_body["response_format"] = {"type": "json_object"}
 
-        try:
-            http_timeout = float(os.getenv("LLM_HTTP_TIMEOUT", "60"))
-        except Exception:
-            http_timeout = 60.0
+        http_timeout = float(self.http_timeout)
 
         # Retries on invalid JSON (strict mode only)
-        try:
-            max_retries = max(0, int(os.getenv("LLM_MAX_RETRIES", "1")))
-        except Exception:
-            max_retries = 1
-        allow_retry_invalid = os.getenv("LLM_RETRY_INVALID_JSON", "1").lower() not in ("0", "false", "")
+        max_retries = int(self.max_retries)
+        allow_retry_invalid = bool(self.retry_invalid_json)
 
         url = f"{self.base_url.rstrip('/')}/chat/completions"
         logger.debug("POST %s", url)
@@ -115,7 +157,7 @@ class LLMClient:
             content = data["choices"][0]["message"]["content"].strip()
 
             raw = _unwrap_fence(content)
-            strict_json = os.getenv("LLM_STRICT_JSON", "1") not in ("0", "false", "False")
+            strict_json = bool(self.strict_json)
             parsed = None
             if strict_json:
                 try:
@@ -246,13 +288,10 @@ class LLMClient:
                 return False
             return re.search(rf"\b{re.escape(word_norm)}\b", text_norm) is not None
 
-        enforce = os.getenv("KEYWORDS_ENFORCE_IN_TEXT", "1") != "0"
-        drop_generic = os.getenv("KEYWORDS_DROP_GENERIC", "1") != "0"
-        single_words_only = os.getenv("KEYWORDS_SINGLE_WORDS_ONLY", "1") != "0"
-        try:
-            min_len = max(1, int(os.getenv("KEYWORDS_MIN_LENGTH", "2")))
-        except Exception:
-            min_len = 2
+        enforce = bool(self.kw_enforce_in_text)
+        drop_generic = bool(self.kw_drop_generic)
+        single_words_only = bool(self.kw_single_words_only)
+        min_len = int(self.kw_min_length)
 
         text_norm = _norm(text)
         # Build a map from normalized token -> original lowercased token as it appears in text

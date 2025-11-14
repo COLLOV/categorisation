@@ -18,10 +18,16 @@ io:
   summary_basename: null                 # si output_dir: nom du JSON (sinon <stem>_summary.json)
 
 llm:
-  mode: null           # uses env LLM_MODE (api|local)
-  model: null          # uses env LLM_MODEL
-  base_url: null       # uses env OPENAI_BASE_URL
+  mode: api            # api | local
+  model: gpt-4.1       # ou modèle local
+  base_url: https://api.openai.com/v1
   api_key_env: OPENAI_API_KEY
+  strict_json: true
+  json_mode: false
+  http_timeout: 60
+  max_tokens: null
+  max_retries: 1
+  retry_invalid_json: true
 
 embedding:
   provider: local
@@ -43,3 +49,9 @@ field_names:
   keywords: Keywords
   # Pour désactiver la colonne texte des mots-clés (plain text), laissez à null
   keywords_text: null
+
+keywords:
+  single_words_only: true
+  enforce_in_text: true
+  drop_generic: true
+  min_length: 2

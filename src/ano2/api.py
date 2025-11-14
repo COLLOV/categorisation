@@ -28,7 +28,7 @@ class ItemsRequest(BaseModel):
 def create_app(cfg: PipelineConfig) -> FastAPI:
     app = FastAPI(title="ANO2 Categorization API")
     load_dotenv(override=False)
-    llm = LLMClient.from_env()
+    llm = LLMClient.from_config(cfg.llm, cfg.keywords)
     emb = Embeddings.from_config(
         provider=cfg.embedding.provider,
         local_model=cfg.embedding.local_model,
