@@ -69,22 +69,127 @@ class LLMClient:
             {"role": "user", "content": f"Feedback: {text}"},
         ]
 
-        body = {
+        # Prepare request body and runtime options
+        base_body = {
             "model": self.model,
-            "messages": messages,
+            "messages": None,  # filled per attempt
             "temperature": 0,
         }
+        # Optional max tokens
+        try:
+            max_tokens = int(os.getenv("LLM_MAX_TOKENS", "0"))
+        except Exception:
+            max_tokens = 0
+        if max_tokens > 0:
+            base_body["max_tokens"] = max_tokens
         # Optional JSON mode for providers that support it (e.g., OpenAI)
-        if os.getenv("LLM_JSON_MODE", "0") not in ("0", "false", "False", ""):
-            body["response_format"] = {"type": "json_object"}
+        if os.getenv("LLM_JSON_MODE", "0").lower() not in ("0", "false", ""):
+            base_body["response_format"] = {"type": "json_object"}
+
+        try:
+            http_timeout = float(os.getenv("LLM_HTTP_TIMEOUT", "60"))
+        except Exception:
+            http_timeout = 60.0
+
+        # Retries on invalid JSON (strict mode only)
+        try:
+            max_retries = max(0, int(os.getenv("LLM_MAX_RETRIES", "1")))
+        except Exception:
+            max_retries = 1
+        allow_retry_invalid = os.getenv("LLM_RETRY_INVALID_JSON", "1").lower() not in ("0", "false", "")
+
         url = f"{self.base_url.rstrip('/')}/chat/completions"
         logger.debug("POST %s", url)
-        with httpx.Client(timeout=60) as client:
-            resp = client.post(url, headers=self._headers(), json=body)
-        if resp.status_code >= 300:
-            raise RuntimeError(f"LLM error {resp.status_code}: {resp.text}")
-        data = resp.json()
-        content = data["choices"][0]["message"]["content"].strip()
+
+        # Attempt loop (helps recover occasional malformed outputs)
+        attempt_messages = list(messages)
+        content = ""
+        for attempt in range(max_retries + 1):
+            body = dict(base_body)
+            body["messages"] = attempt_messages
+            with httpx.Client(timeout=http_timeout) as client:
+                resp = client.post(url, headers=self._headers(), json=body)
+            if resp.status_code >= 300:
+                raise RuntimeError(f"LLM error {resp.status_code}: {resp.text}")
+            data = resp.json()
+            content = data["choices"][0]["message"]["content"].strip()
+
+            raw = _unwrap_fence(content)
+            strict_json = os.getenv("LLM_STRICT_JSON", "1") not in ("0", "false", "False")
+            parsed = None
+            if strict_json:
+                try:
+                    parsed = json.loads(raw)
+                except json.JSONDecodeError as e:
+                    # Optionally retry with a corrective instruction
+                    if allow_retry_invalid and attempt < max_retries:
+                        logger.warning("Invalid JSON on attempt %d: %s... Retrying once.", attempt + 1, content[:120])
+                        attempt_messages = attempt_messages + [
+                            {
+                                "role": "user",
+                                "content": (
+                                    "Your previous answer was not valid JSON. Return ONLY one JSON object with keys "
+                                    "category (string), subcategory (string), sentiment ('positive'|'neutral'|'negative'), "
+                                    "keywords (array of single-word strings). No markdown, no extra text."
+                                ),
+                            }
+                        ]
+                        continue
+                    else:
+                        raise ValueError(f"Model did not return valid JSON (strict): {content[:200]}") from e
+            else:
+                # Lenient parsing for non-conformant providers (dev/local only)
+                last_err: Exception | None = None
+                # Attempt 1: direct JSON object/array
+                try:
+                    parsed = json.loads(raw)
+                except Exception as e:
+                    last_err = e
+                # Attempt 2: content may be a JSON-escaped string of the object (wrapped quotes)
+                if parsed is None and raw.strip().startswith("\"") and raw.strip().endswith("\""):
+                    try:
+                        inner = json.loads(raw.strip())
+                        if isinstance(inner, str):
+                            parsed = json.loads(inner)
+                            raw = inner
+                    except Exception as e:
+                        last_err = e
+                # Attempt 3: escaped JSON object without outer quotes, e.g. {\"a\":1}
+                if parsed is None and raw.strip().startswith("{\\\"") and '\\"' in raw:
+                    try:
+                        unescaped = json.loads("\"" + raw + "\"")  # decode escapes
+                        parsed = json.loads(unescaped)
+                        raw = unescaped
+                    except Exception as e:
+                        last_err = e
+                # Attempt 4: extract the first top-level {...} window if extra text surrounds JSON
+                if parsed is None and "{" in raw and "}" in raw:
+                    i = raw.find("{")
+                    j = raw.rfind("}")
+                    if j > i >= 0:
+                        candidate = raw[i : j + 1]
+                        try:
+                            parsed = json.loads(candidate)
+                            raw = candidate
+                        except Exception as e:
+                            last_err = e
+                if parsed is None:
+                    if allow_retry_invalid and attempt < max_retries:
+                        logger.warning("Lenient parse failed on attempt %d: %s... Retrying once.", attempt + 1, content[:120])
+                        attempt_messages = attempt_messages + [
+                            {
+                                "role": "user",
+                                "content": (
+                                    "Your previous answer was not valid JSON. Return ONLY one JSON object with keys "
+                                    "category, subcategory, sentiment, keywords (array of single words)."
+                                ),
+                            }
+                        ]
+                        continue
+                    raise ValueError(f"Model did not return valid JSON: {content[:200]}")
+
+            # From here we have parsed
+            break
 
         # Some local models wrap JSON in a fenced code block (```json ... ```)
         def _unwrap_fence(s: str) -> str:
@@ -96,52 +201,7 @@ class LLMClient:
                     t = t[4:].strip()
             return t
 
-        raw = _unwrap_fence(content)
-        strict_json = os.getenv("LLM_STRICT_JSON", "1") not in ("0", "false", "False")
-        parsed = None
-        if strict_json:
-            try:
-                parsed = json.loads(raw)
-            except json.JSONDecodeError:
-                raise ValueError(f"Model did not return valid JSON (strict): {content[:200]}")
-        else:
-            # Lenient parsing for non-conformant providers (dev/local only)
-            last_err: Exception | None = None
-            # Attempt 1: direct JSON object/array
-            try:
-                parsed = json.loads(raw)
-            except Exception as e:
-                last_err = e
-            # Attempt 2: content may be a JSON-escaped string of the object (wrapped quotes)
-            if parsed is None and raw.strip().startswith("\"") and raw.strip().endswith("\""):
-                try:
-                    inner = json.loads(raw.strip())
-                    if isinstance(inner, str):
-                        parsed = json.loads(inner)
-                        raw = inner
-                except Exception as e:
-                    last_err = e
-            # Attempt 3: escaped JSON object without outer quotes, e.g. {\"a\":1}
-            if parsed is None and raw.strip().startswith("{\\\"") and '\\"' in raw:
-                try:
-                    unescaped = json.loads("\"" + raw + "\"")  # decode escapes
-                    parsed = json.loads(unescaped)
-                    raw = unescaped
-                except Exception as e:
-                    last_err = e
-            # Attempt 4: extract the first top-level {...} window if extra text surrounds JSON
-            if parsed is None and "{" in raw and "}" in raw:
-                i = raw.find("{")
-                j = raw.rfind("}")
-                if j > i >= 0:
-                    candidate = raw[i : j + 1]
-                    try:
-                        parsed = json.loads(candidate)
-                        raw = candidate
-                    except Exception as e:
-                        last_err = e
-            if parsed is None:
-                raise ValueError(f"Model did not return valid JSON: {content[:200]}")
+        # 'parsed' is guaranteed to be set here
         # Strict validation
         for k in ("category", "subcategory", "sentiment"):
             if k not in parsed or not isinstance(parsed[k], str) or not parsed[k].strip():

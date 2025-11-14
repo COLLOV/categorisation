@@ -55,6 +55,10 @@ Variables d'environnement (mots‑clés):
 JSON strict vs tolérant:
 - `LLM_STRICT_JSON` (default `1`): en mode strict, la réponse du modèle DOIT être un JSON valide (objet) sans texte additionnel; sinon erreur. Recommandé en prod.
 - `LLM_JSON_MODE` (default `0`): si supporté par le provider (OpenAI, etc.), active `response_format: {type: json_object}` pour forcer un JSON côté modèle.
+ - `LLM_MAX_TOKENS` (optional): limite de tokens de sortie; utile si le provider tronque par défaut.
+ - `LLM_HTTP_TIMEOUT` (default `60`): timeout HTTP en secondes.
+ - `LLM_MAX_RETRIES` (default `1`): nombre de retries si le JSON est invalide.
+ - `LLM_RETRY_INVALID_JSON` (default `1`): active la relance corrective automatique en cas de JSON invalide (seulement si `LLM_MAX_RETRIES` > 0).
 
 ## Exécution en local (CLI)
 Usage simple avec script:
