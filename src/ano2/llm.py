@@ -4,6 +4,7 @@ import json
 import os
 from dataclasses import dataclass
 from typing import Dict
+import time
 import re
 import unicodedata
 
@@ -160,8 +161,16 @@ class LLMClient:
         for attempt in range(max_retries + 1):
             body = dict(base_body)
             body["messages"] = attempt_messages
-            with httpx.Client(timeout=http_timeout) as client:
-                resp = client.post(url, headers=self._headers(), json=body)
+            try:
+                with httpx.Client(timeout=http_timeout) as client:
+                    resp = client.post(url, headers=self._headers(), json=body)
+            except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.WriteTimeout, httpx.TimeoutException, httpx.RequestError) as e:
+                if attempt < max_retries:
+                    logger.warning("HTTP error on attempt %d: %s; retrying once.", attempt + 1, str(e))
+                    # Exponential backoff capped at 4s
+                    time.sleep(min(2 ** attempt, 4.0))
+                    continue
+                raise
             if resp.status_code >= 300:
                 raise RuntimeError(f"LLM error {resp.status_code}: {resp.text}")
             data = resp.json()
