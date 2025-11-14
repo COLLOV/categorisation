@@ -23,6 +23,17 @@ def _required_env(name: str) -> str:
     return v
 
 
+def _unwrap_fence(s: str) -> str:
+    t = s.strip()
+    if t.startswith("```") and t.endswith("```"):
+        t = t[3:-3].strip()
+        # Optional language tag like ```json
+        tl = t.lower()
+        if tl.startswith("json"):
+            t = t[4:].strip()
+    return t
+
+
 @dataclass
 class LLMClient:
     base_url: str
@@ -233,15 +244,7 @@ class LLMClient:
             # From here we have parsed
             break
 
-        # Some local models wrap JSON in a fenced code block (```json ... ```)
-        def _unwrap_fence(s: str) -> str:
-            t = s.strip()
-            if t.startswith("```") and t.endswith("```"):
-                t = t[3:-3].strip()
-                # Optional language tag like ```json
-                if t.lower().startswith("json"):
-                    t = t[4:].strip()
-            return t
+        # (helper _unwrap_fence is defined at module scope)
 
         # 'parsed' is guaranteed to be set here
         # Strict validation
